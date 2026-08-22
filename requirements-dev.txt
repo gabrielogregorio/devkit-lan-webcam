@@ -35,6 +35,7 @@ pygments==2.21.0
 pytest==9.1.1
     # via pytest-asyncio
 pytest-asyncio==1.4.0
+ruff==0.16.4
 typing-extensions==4.16.0 ; python_full_version < '3.13'
     # via
     #   aiohttp

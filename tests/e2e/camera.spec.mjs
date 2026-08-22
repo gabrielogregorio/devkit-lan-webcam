@@ -75,13 +75,8 @@ test('cliques rapidos em Traseira/Frontal sao serializados (sem erro nao tratado
   });
 });
 
-test('Iniciar transmissao abre o WebSocket e comeca a enviar blobs', async () => {
+test('Iniciar transmissao abre o WebSocket e o servidor recebe os blobs', async () => {
   await withPage(async (page) => {
-    const sentFrames = { count: 0 };
-    page.on('websocket', (webSocket) => {
-      webSocket.on('framesent', () => { sentFrames.count++; });
-    });
-
     await page.goto(BASE_URL, { waitUntil: 'load' });
     await page.click('#backBtn');
     await waitForCameraOpened(page);
@@ -93,7 +88,14 @@ test('Iniciar transmissao abre o WebSocket e comeca a enviar blobs', async () =>
     );
     await page.waitForTimeout(FRAME_COLLECTION_MS);
 
-    assert.ok(sentFrames.count > 0, 'pelo menos 1 frame enviado pelo WS');
+    // Verifica no lado do servidor (mais robusto que o evento `framesent` do
+    // Playwright, que não dispara de forma confiável no Chromium headless).
+    const { frames } = await page.evaluate(async () => {
+      const response = await fetch('/frames');
+      return response.json();
+    });
+    assert.ok(frames > 0, 'pelo menos 1 frame recebido pelo servidor');
+
     await page.click('#stopBtn');
   });
 });
