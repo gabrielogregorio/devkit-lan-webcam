@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Celular → Webcam do PC</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; font-family: -apple-system, system-ui, sans-serif;
+    background: #0b0d12; color: #e6e8ee; display: flex; flex-direction: column;
+    min-height: 100vh; align-items: center; padding: 16px; gap: 12px;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin: 4px 0; }
+  #preview {
+    width: 100%; max-width: 480px; aspect-ratio: 16/9; background: #000;
+    border-radius: 14px; border: 1px solid #1e2230; touch-action: none;
+    display: block;
+  }
+  .panel { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; gap: 8px; width: 100%; }
+  button, select {
+    flex: 1; padding: 13px 8px; font-size: 15px; border-radius: 12px;
+    border: 1px solid #2a2f40; background: #161a26; color: #e6e8ee;
+  }
+  button.primary { background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: 600; }
+  button.active { background: #1f3a5f; border-color: #3b82f6; }
+  button:disabled { opacity: .4; }
+  .zoomrow { display: flex; align-items: center; gap: 10px; }
+  .zoomrow span { font-size: 13px; color: #8b91a3; min-width: 42px; text-align: right; }
+  input[type=range] { flex: 1; accent-color: #3b82f6; height: 28px; }
+  #status {
+    width: 100%; max-width: 480px; text-align: center; font-size: 14px;
+    padding: 10px; border-radius: 10px; background: #161a26;
+  }
+  .ok { color: #34d399; } .err { color: #f87171; } .warn { color: #fbbf24; }
+  .hint { font-size: 12px; color: #8b91a3; max-width: 480px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>📷 Celular → Webcam do PC</h1>
+
+  <canvas id="preview"></canvas>
+
+  <div class="panel">
+    <div class="zoomrow">
+      🔍 <input type="range" id="zoom" min="0.3" max="5" step="0.01" value="1">
+      <span id="zoomVal">1.0x</span>
+    </div>
+    <div class="row">
+      <button id="mirrorBtn">Espelhar</button>
+      <button id="rotBtn">Girar 90°</button>
+      <button id="fitBtn">Enquadrar</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+    <div class="row">
+      <button id="backBtn">📷 Traseira</button>
+      <button id="frontBtn">🤳 Frontal</button>
+    </div>
+    <div class="row">
+      <select id="camSel"></select>
+    </div>
+    <div class="row">
+      <button id="startBtn" class="primary">Iniciar transmissão</button>
+      <button id="stopBtn" disabled>Parar</button>
+    </div>
+  </div>
+
+  <div id="status">Toque em "Iniciar transmissão"</div>
+  <div class="hint">No preview: <b>arraste</b> para mover • <b>pinça</b> (2 dedos) para zoom. A câmera vira a webcam <b>"Phone Camera"</b> no PC. Mantenha a aba aberta e a tela ligada.</div>
+
+<script type="module">
+import {
+  resetView, toggleMirror, cycleRotation, toggleFit,
+  setZoom, zoomFromPinch, panBy, computeDrawParams,
+} from './view.js';
+
+const previewCanvas = document.getElementById('preview');
+const cameraSelect = document.getElementById('camSel');
+const startButton = document.getElementById('startBtn');
+const stopButton = document.getElementById('stopBtn');
+const statusBox = document.getElementById('status');
+const zoomSlider = document.getElementById('zoom');
+const zoomValueLabel = document.getElementById('zoomVal');
+const mirrorButton = document.getElementById('mirrorBtn');
+const rotationButton = document.getElementById('rotBtn');
+const fitButton = document.getElementById('fitBtn');
+const resetButton = document.getElementById('resetBtn');
+const backCameraButton = document.getElementById('backBtn');
+const frontCameraButton = document.getElementById('frontBtn');
+
+const CANVAS_WIDTH = 1280;
+const CANVAS_HEIGHT = 720;
+const FPS = 25;
+const JPEG_QUALITY = 0.6;
+const MAX_BUFFERED_BYTES = 1_000_000;
+// O Android precisa de um respiro entre soltar e reabrir o sensor, senão dá NotReadableError.
+const CAMERA_RELEASE_DELAY_MS = 150;
+
+previewCanvas.width = CANVAS_WIDTH;
+previewCanvas.height = CANVAS_HEIGHT;
+const canvasContext = previewCanvas.getContext('2d', { alpha: false });
+
+const videoSource = document.createElement('video');
+videoSource.playsInline = true;
+videoSource.muted = true;
+videoSource.setAttribute('playsinline', '');
+
+let mediaStream = null;
+let socket = null;
+let sendTimer = null;
+let animationFrameId = null;
+let streaming = false;
+let view = resetView();
+
+function setStatus(message, statusClass = '') {
+  statusBox.textContent = message;
+  statusBox.className = statusClass;
+}
+
+function drawFrame() {
+  const videoWidth = videoSource.videoWidth;
+  const videoHeight = videoSource.videoHeight;
+  canvasContext.fillStyle = '#000';
+  canvasContext.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  if (!videoWidth || !videoHeight) {
+    return;
+  }
+  const drawParams = computeDrawParams(view, videoWidth, videoHeight, CANVAS_WIDTH, CANVAS_HEIGHT);
+  canvasContext.save();
+  canvasContext.translate(drawParams.translateX, drawParams.translateY);
+  canvasContext.rotate((drawParams.rotation * Math.PI) / 180);
+  canvasContext.scale(drawParams.mirrorX, 1);
+  canvasContext.drawImage(
+    videoSource,
+    -drawParams.drawWidth / 2,
+    -drawParams.drawHeight / 2,
+    drawParams.drawWidth,
+    drawParams.drawHeight,
+  );
+  canvasContext.restore();
+}
+
+function renderLoop() {
+  drawFrame();
+  animationFrameId = requestAnimationFrame(renderLoop);
+}
+
+function startRender() {
+  if (!animationFrameId) {
+    renderLoop();
+  }
+}
+
+function stopRender() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  drawFrame();
+}
+
+function sendFrame() {
+  if (!streaming || !socket || socket.readyState !== WebSocket.OPEN) {
+    return;
+  }
+  // Rede travada não pode virar backlog de frames velhos na memória do celular.
+  if (socket.bufferedAmount > MAX_BUFFERED_BYTES) {
+    return;
+  }
+  previewCanvas.toBlob((jpegBlob) => {
+    if (jpegBlob && socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(jpegBlob);
+    }
+  }, 'image/jpeg', JPEG_QUALITY);
+}
+
+function syncZoomControls() {
+  zoomValueLabel.textContent = `${view.zoom.toFixed(1)}x`;
+  zoomSlider.value = view.zoom;
+}
+
+function syncButtons() {
+  mirrorButton.classList.toggle('active', view.mirror);
+  fitButton.textContent = view.fit === 'cover' ? 'Cortar ✓' : 'Encaixar ✓';
+  syncZoomControls();
+}
+
+zoomSlider.oninput = () => {
+  view = setZoom(view, parseFloat(zoomSlider.value));
+  zoomValueLabel.textContent = `${view.zoom.toFixed(1)}x`;
+};
+mirrorButton.onclick = () => { view = toggleMirror(view); syncButtons(); };
+rotationButton.onclick = () => { view = cycleRotation(view); };
+fitButton.onclick = () => { view = toggleFit(view); syncButtons(); };
+resetButton.onclick = () => { view = resetView(); syncButtons(); };
+
+const activePointers = new Map();
+let lastPanPoint = null;
+let pinchStartDistance = 0;
+let pinchStartZoom = 1;
+
+const canvasScale = () => CANVAS_WIDTH / previewCanvas.getBoundingClientRect().width;
+
+const pointerDistance = ([first, second]) => Math.hypot(first.x - second.x, first.y - second.y);
+
+previewCanvas.addEventListener('pointerdown', (event) => {
+  previewCanvas.setPointerCapture(event.pointerId);
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  if (activePointers.size === 1) {
+    lastPanPoint = { x: event.clientX, y: event.clientY };
+    return;
+  }
+  if (activePointers.size === 2) {
+    pinchStartDistance = pointerDistance([...activePointers.values()]);
+    pinchStartZoom = view.zoom;
+    lastPanPoint = null;
+  }
+});
+
+previewCanvas.addEventListener('pointermove', (event) => {
+  if (!activePointers.has(event.pointerId)) {
+    return;
+  }
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  if (activePointers.size === 1 && lastPanPoint) {
+    const scale = canvasScale();
+    view = panBy(
+      view,
+      (event.clientX - lastPanPoint.x) * scale,
+      (event.clientY - lastPanPoint.y) * scale,
+    );
+    lastPanPoint = { x: event.clientX, y: event.clientY };
+    return;
+  }
+  if (activePointers.size === 2 && pinchStartDistance > 0) {
+    const distance = pointerDistance([...activePointers.values()]);
+    view = setZoom(view, zoomFromPinch(pinchStartZoom, pinchStartDistance, distance));
+    syncZoomControls();
+  }
+});
+
+function endPointer(event) {
+  activePointers.delete(event.pointerId);
+  if (activePointers.size === 1) {
+    const [remainingPointer] = [...activePointers.values()];
+    lastPanPoint = { x: remainingPointer.x, y: remainingPointer.y };
+    return;
+  }
+  if (activePointers.size === 0) {
+    lastPanPoint = null;
+  }
+}
+
+previewCanvas.addEventListener('pointerup', endPointer);
+previewCanvas.addEventListener('pointercancel', endPointer);
+
+function activeCameraLabel() {
+  const videoTrack = mediaStream && mediaStream.getVideoTracks()[0];
+  if (!videoTrack) {
+    return 'câmera';
+  }
+  const settings = videoTrack.getSettings ? videoTrack.getSettings() : {};
+  return videoTrack.label || settings.facingMode || '?';
+}
+
+function cameraListStatusText(cameraCount) {
+  if (streaming) {
+    return `${cameraCount} câmera(s) encontrada(s) - 🟢 transmitindo`;
+  }
+  return `${cameraCount} câmera(s) encontrada(s)`;
+}
+
+function previewStatusText() {
+  if (streaming) {
+    return `🟢 Transmitindo - ${activeCameraLabel()}`;
+  }
+  return `👁️ Pré-visualizando - ${activeCameraLabel()}`;
+}
+
+function cameraFailureStatusText(error, revertedStream) {
+  const reason = error.name || error.message;
+  if (revertedStream) {
+    return `Essa câmera não abriu (${reason}). Voltei pra anterior.`;
+  }
+  return `Essa câmera não abriu (${reason}). Nenhuma disponível.`;
+}
+
+async function listCameras() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter((device) => device.kind === 'videoinput');
+    const previousDeviceId = cameraSelect.value;
+    cameraSelect.innerHTML = '';
+    cameras.forEach((camera, index) => {
+      const option = document.createElement('option');
+      option.value = camera.deviceId;
+      option.textContent = camera.label || `Câmera ${index + 1}`;
+      cameraSelect.appendChild(option);
+    });
+    if (previousDeviceId && cameras.some((camera) => camera.deviceId === previousDeviceId)) {
+      cameraSelect.value = previousDeviceId;
+    }
+    setStatus(cameraListStatusText(cameras.length), cameras.length > 1 ? 'ok' : '');
+  } catch {
+    // Enumerar é best-effort: sem permissão a lista fica vazia e os botões Traseira/Frontal seguem valendo.
+  }
+}
+
+// Os rótulos das câmeras só aparecem depois da permissão, e isso chega como devicechange.
+navigator.mediaDevices?.addEventListener?.('devicechange', listCameras);
+
+function stopMediaStream() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach((track) => track.stop());
+    mediaStream = null;
+  }
+}
+
+const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+// Última câmera que abriu de verdade: destino do revert quando uma lente nova falha.
+let wantedVideoConstraint = { facingMode: { ideal: 'environment' } };
+let openingCamera = false;
+
+async function revertToLastWorkingCamera() {
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio: false, video: wantedVideoConstraint });
+  } catch {
+    return null;
+  }
+}
+
+async function attachStream(stream) {
+  mediaStream = stream;
+  videoSource.srcObject = stream;
+  await videoSource.play();
+  startRender();
+}
+
+// Abre UMA câmera por vez: cliques concorrentes prendem o sensor e derrubam as duas aberturas.
+async function openCamera(videoConstraint) {
+  if (openingCamera) {
+    return;
+  }
+  openingCamera = true;
+  const desiredConstraint = videoConstraint || wantedVideoConstraint;
+  setStatus('Abrindo câmera…', 'warn');
+  try {
+    stopMediaStream();
+    await delay(CAMERA_RELEASE_DELAY_MS);
+    let stream = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: desiredConstraint });
+      wantedVideoConstraint = desiredConstraint;
+    } catch (error) {
+      // Lente auxiliar (ultra-wide/tele) costuma dar NotReadableError ao abrir por deviceId.
+      const revertedStream = await revertToLastWorkingCamera();
+      if (revertedStream) {
+        await attachStream(revertedStream);
+      }
+      setStatus(cameraFailureStatusText(error, revertedStream), 'err');
+      return;
+    }
+    await attachStream(stream);
+    await listCameras();
+    setStatus(previewStatusText(), streaming ? 'ok' : '');
+  } finally {
+    openingCamera = false;
+  }
+}
+
+async function startStreaming() {
+  if (!mediaStream) {
+    await openCamera(wantedVideoConstraint);
+  }
+  if (!mediaStream) {
+    setStatus('Sem câmera. Permita o acesso e toque Traseira/Frontal', 'err');
+    return;
+  }
+  socket = new WebSocket(`wss://${location.host}/ws`);
+  socket.binaryType = 'blob';
+  socket.onopen = () => {
+    streaming = true;
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    setStatus(previewStatusText(), 'ok');
+    sendTimer = setInterval(sendFrame, 1000 / FPS);
+  };
+  socket.onclose = () => stopStreaming('Conexão encerrada');
+  socket.onerror = () => setStatus('Erro de conexão WebSocket', 'err');
+}
+
+function stopStreaming(reason) {
+  streaming = false;
+  if (sendTimer) {
+    clearInterval(sendTimer);
+    sendTimer = null;
+  }
+  if (socket) {
+    try {
+      socket.close();
+    } catch {
+      // Socket já morto no disconnect: fechar de novo não muda nada.
+    }
+    socket = null;
+  }
+  stopMediaStream();
+  videoSource.srcObject = null;
+  stopRender();
+  startButton.disabled = false;
+  stopButton.disabled = true;
+  cameraSelect.disabled = false;
+  setStatus(reason || 'Parado', 'warn');
+}
+
+startButton.onclick = startStreaming;
+stopButton.onclick = () => stopStreaming('Parado');
+// facingMode exact sempre abre a câmera certa; o dropdown de lentes é best-effort e reverte sozinho.
+backCameraButton.onclick = () => openCamera({ facingMode: { exact: 'environment' } });
+frontCameraButton.onclick = () => openCamera({ facingMode: { exact: 'user' } });
+cameraSelect.onchange = () => openCamera({ deviceId: { exact: cameraSelect.value } });
+
+syncButtons();
+drawFrame();
+if (navigator.mediaDevices?.enumerateDevices) {
+  listCameras();
+}
+</script>
+</body>
+</html>
