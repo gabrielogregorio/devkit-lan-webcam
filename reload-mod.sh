@@ -8,7 +8,7 @@
 #
 # Instalar (uma vez, root):
 #   sudo install -m755 -o root -g root reload-mod.sh /usr/local/sbin/webcam-cam-reload
-#   echo 'greg ALL=(root) NOPASSWD: /usr/local/sbin/webcam-cam-reload' | sudo tee /etc/sudoers.d/webcam
+#   echo "$(whoami) ALL=(root) NOPASSWD: /usr/local/sbin/webcam-cam-reload" | sudo tee /etc/sudoers.d/webcam
 #   sudo chmod 440 /etc/sudoers.d/webcam
 set -e
 fuser -k /dev/video10 2>/dev/null || true

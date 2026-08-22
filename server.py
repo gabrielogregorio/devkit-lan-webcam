@@ -5,11 +5,11 @@ num dispositivo virtual v4l2loopback usando ffmpeg, fazendo a câmera do celular
 aparecer como uma webcam no PC.
 """
 import os
-import ssl
 import socket
+import ssl
 import subprocess
 
-from aiohttp import web, WSMsgType, WSCloseCode
+from aiohttp import WSCloseCode, WSMsgType, web
 
 DEVICE: str = os.environ.get("CAM_DEVICE", "/dev/video10")
 WIDTH: int = int(os.environ.get("CAM_WIDTH", "1280"))

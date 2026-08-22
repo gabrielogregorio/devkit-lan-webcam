@@ -1,7 +1,6 @@
 import asyncio
 
 from aiohttp.test_utils import TestClient
-
 from conftest import FakeFfmpegProcess
 
 HANDLER_SETTLE_SECONDS = 0.05

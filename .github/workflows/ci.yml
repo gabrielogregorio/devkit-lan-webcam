@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    name: Lint (ruff + shellcheck + node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Ruff check (Python)
+        run: .venv/bin/ruff check .
+
+      - name: ShellCheck (Bash)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq shellcheck
+          shellcheck --severity=warning \
+            run.sh run-tests.sh setup.sh reload-cam.sh reload-mod.sh \
+            tests/launcher/test_launcher.sh
+
+      - name: Node syntax check (JS)
+        run: |
+          node --check view.js
+          node --check tests/frontend/view.test.mjs
+          node --check tests/e2e/camera.spec.mjs
+
+  unit:
+    name: Unit tests (pytest + node + launcher)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run unit tests
+        run: ./run-tests.sh
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Generate self-signed cert
+        run: |
+          openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout key.pem -out cert.pem -days 1 -subj "/CN=phone-cam"
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null
+          npm install --save-dev playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: RUN_E2E=1 ./run-tests.sh

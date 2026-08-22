@@ -7,7 +7,7 @@
 #
 # Caminho padrao: NAO sobe nada na 9443 e NAO encosta no /dev/video10 real.
 set -u
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit
 
 PY=".venv/bin/python"
 E2E_PORT="${PORT:-19443}"

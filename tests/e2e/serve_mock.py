@@ -6,13 +6,13 @@ os frames: exercita HTTP/TLS/WebSocket de verdade sem encostar no /dev/video10.
 Uso:  PORT=19443 .venv/bin/python tests/e2e/serve_mock.py
 """
 import os
-import sys
 import subprocess
+import sys
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT_ROOT)
 
-import server  # noqa: E402
+import server
 
 
 def make_discarding_ffmpeg() -> subprocess.Popen[bytes]:
