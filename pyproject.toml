@@ -1,0 +1,19 @@
+[project]
+name = "cellcam"
+version = "0.1.0"
+description = "Celular como webcam virtual no PC (Ubuntu): servidor HTTPS/WebSocket que alimenta /dev/video10 via ffmpeg + v4l2loopback"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.9",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<10",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.uv]
+# Projeto "virtual": nao e um pacote instalavel, so um conjunto de scripts
+# (server.py, webcam.sh). uv gerencia apenas as dependencias.
+package = false

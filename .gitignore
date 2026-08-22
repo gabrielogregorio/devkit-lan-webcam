@@ -1,0 +1,6 @@
+*.pem
+.venv
+.claude
+__pycache__
+.mypy_cache
+*.log
