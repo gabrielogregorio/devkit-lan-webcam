@@ -16,7 +16,7 @@ color() { printf "\033[%sm%s\033[0m\n" "$1" "$2"; }
 local_ip() { hostname -I 2>/dev/null | awk '{print $1}'; }
 
 stop_server() {
-  pkill -9 -f "[s]erver.py" 2>/dev/null || true
+  pkill -9 -f "python [s]erver[.]py" 2>/dev/null || true
   pkill -9 -f "[m]jpeg -i pipe:0" 2>/dev/null || true
 }
 
@@ -43,7 +43,7 @@ case "${1:-start}" in
     exit 0
     ;;
   status)
-    if pgrep -f "[s]erver.py" >/dev/null; then
+    if pgrep -f "python [s]erver[.]py" >/dev/null; then
       color "32" "● Servidor RODANDO  ->  https://$(local_ip):$PORT"
     else
       color "31" "○ Servidor parado"
