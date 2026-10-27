@@ -1,11 +1,76 @@
-## CellCam
+<div align="center">
+
+# CellCam
+
+**A câmera do celular vira webcam do PC (`/dev/video10`, "Phone Camera"), pela rede local.**
+
+![Python](https://img.shields.io/badge/Python-3.12-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![aiohttp](https://img.shields.io/badge/aiohttp-2C5BB4?style=for-the-badge&logo=aiohttp&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![FFmpeg](https://img.shields.io/badge/FFmpeg-007808?style=for-the-badge&logo=ffmpeg&logoColor=white)
+![v4l2loopback](https://img.shields.io/badge/v4l2loopback-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
+![LAN](https://img.shields.io/badge/só%20rede%20local-sem%20nuvem-555555?style=for-the-badge)
+
+</div>
+
+## Sobre o projeto
 
 Transforma a câmera do **celular** numa **webcam virtual no PC** (Ubuntu). O celular
 abre uma página web servida pelo PC, captura a câmera e envia os frames; no PC eles
 viram um dispositivo `/dev/video10` que apps (Chrome, Zoom, OBS, Meet…) enxergam como
 a câmera **"Phone Camera"**.
 
-Ambiente onde foi montado: Ubuntu, kernel 6.17
+Montado e testado em Ubuntu (kernel 6.17).
+
+## Configurar num PC novo
+
+1. Instalar (pede sudo: pacotes `v4l2loopback-dkms`, `ffmpeg`, `python3-venv`…, venv e
+   certificado HTTPS):
+   ```bash
+   git clone <url-do-repo> devkit-phone-wi-fi-webcam
+   cd devkit-phone-wi-fi-webcam
+   ./setup.sh
+   ```
+2. Deixar a webcam virtual permanente (sobe no boot com `exclusive_caps=1`, que o Chrome exige):
+   ```bash
+   sudo bash reload-cam.sh
+   ```
+   Com Secure Boot ligado, o `v4l2loopback-dkms` pede para registrar uma chave (MOK) na
+   instalação; aceite e confirme no próximo boot, senão o módulo não carrega.
+3. Opcional, recomendado: deixar o `run.sh` recarregar o módulo sem senha a cada subida
+   (evita o erro `VIDIOC_G_FMT` na 2ª abertura). Os 3 comandos estão no topo do `reload-mod.sh`
+   e o `run.sh` repete eles quando não acha a configuração.
+4. Conferir e usar:
+   ```bash
+   ./run.sh status     # servidor + /dev/video10 + exclusive_caps
+   ./run.sh            # sobe e mostra o endereço pro celular
+   ```
+   Use o Chrome `.deb` (o snap não enxerga `/dev/video10`).
+
+**Fora do repositório:** `cert.pem`/`key.pem` (gerados, ignorados pelo git), `.venv/`,
+`/etc/modprobe.d/v4l2loopback.conf` e `/etc/modules-load.d/v4l2loopback.conf`.
+
+## Scripts disponíveis
+
+```bash
+# Rodar
+./run.sh            # sobe e mostra o endereço (Ctrl+C para)
+./run.sh status     # servidor + webcam virtual
+./run.sh stop
+./run.sh restart
+
+# Testar
+./run-tests.sh                      # backend + frontend + launcher (~1 s)
+RUN_DEVICE_TESTS=1 ./run-tests.sh   # + /dev/video10 real
+RUN_E2E=1 ./run-tests.sh            # + E2E Playwright (npm i -D playwright && npx playwright install chromium)
+
+# Dependências (uv)
+uv sync --all-groups
+uv lock && uv export --frozen --no-dev --no-emit-project --no-hashes -o requirements.txt
+```
 
 ## Arquitetura / fluxo
 
@@ -47,16 +112,6 @@ Ambiente onde foi montado: Ubuntu, kernel 6.17
 | `.venv/`         | venv com `aiohttp` (Python é PEP 668 / externally-managed; **não** use pip global). |
 | `cert.pem`/`key.pem` | Cert TLS autoassinado. |
 
-## Estado atual (já configurado, NÃO precisa refazer)
-
-- ✅ `v4l2loopback` carregado com `exclusive_caps=1` (confirmado: `Y,N,N,...`).
-- ✅ **Permanente**: `/etc/modprobe.d/v4l2loopback.conf` e `/etc/modules-load.d/v4l2loopback.conf`
-  criados → o módulo sobe sozinho no boot com os parâmetros certos. NÃO precisa rodar
-  `reload-cam.sh` de novo, exceto se a config sumir.
-- ✅ `.venv` com aiohttp instalado.
-- ✅ Cert TLS gerado.
-- ✅ Funcionando ponta a ponta (imagem do celular validada via `ffplay /dev/video10`).
-- ⚠️ **Servidor fica DESLIGADO** por padrão — precisa subir manualmente quando for usar.
 
 ## Dependências
 
@@ -77,17 +132,7 @@ uv export --frozen --no-dev      --no-emit-project --no-hashes -o requirements.t
 uv export --frozen --all-groups  --no-emit-project --no-hashes -o requirements-dev.txt
 ```
 
-## Testes
-
-```bash
-./run-tests.sh                      # backend + frontend + launcher (~1s), com placar
-RUN_DEVICE_TESTS=1 ./run-tests.sh   # + checagem do /dev/video10 real (opt-in)
-
-npm i -D playwright && npx playwright install chromium   # 1x, para o E2E
-RUN_E2E=1 ./run-tests.sh            # + E2E Playwright (opt-in)
-```
-
-Por camada:
+## Testes por camada
 
 ```bash
 .venv/bin/python -m pytest tests/backend -q   # ffmpeg mockado, porta efêmera, sem TLS
@@ -98,21 +143,6 @@ bash tests/launcher/test_launcher.sh          # run.sh com stubs, sem sudo/sem d
 O caminho padrão não sobe nada na 9443, não dispara o ffmpeg real e não encosta no
 `/dev/video10`. O E2E sobe o `server.py` **real** via `tests/e2e/serve_mock.py`, trocando
 só o ffmpeg por um `cat` que descarta os frames.
-
-## Como rodar
-
-Forma recomendada (launcher):
-```bash
-./run.sh            # inicia (foreground, Ctrl+C para parar) e imprime o link
-./run.sh status     # mostra estado do servidor + webcam virtual
-./run.sh stop       # para
-./run.sh restart    # reinicia
-```
-
-Direto (equivalente):
-```bash
-.venv/bin/python server.py
-```
 
 ## Uso (ordem importa!)
 

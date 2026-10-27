@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 echo ">> Instalando pacotes (precisa de sudo)…"
 sudo apt update
-sudo apt install -y v4l2loopback-dkms v4l-utils ffmpeg python3-pip openssl
+sudo apt install -y v4l2loopback-dkms v4l-utils ffmpeg python3-venv python3-pip openssl psmisc
 
 echo ">> Criando o venv e instalando as dependências travadas…"
 python3 -m venv .venv
