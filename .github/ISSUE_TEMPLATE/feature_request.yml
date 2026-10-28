@@ -1,0 +1,22 @@
+name: Feature request
+description: A new control on the page, a new setting or a change in how the webcam works
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do and what gets in the way today
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: The solution you would like
+      description: e.g. "remember zoom and position between sessions", "vertical 720x1280 webcam"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

@@ -1,0 +1,60 @@
+name: Bug report
+description: The page does not open, the camera does not stream or the PC does not see the webcam
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the status line shown on the page and any error in the terminal.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. `./run.sh` on the PC
+        2. Open https://<pc-ip>:9443 on the phone, tap Back, Start streaming
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `cat VERSION`
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: camera-device
+    attributes:
+      label: Camera device and browser
+      placeholder: Android 15, Chrome 140 / iPad, Safari / laptop, Firefox
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: PC
+      description: Distro and version, kernel, app that should see the webcam
+      placeholder: Ubuntu 24.04, kernel 6.8, Google Chrome (.deb)
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Output of ./run.sh status
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, whether `ffplay /dev/video10` shows the image
