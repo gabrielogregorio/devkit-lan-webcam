@@ -21,6 +21,10 @@
 [![CodeQL](https://github.com/gabrielogregorio/devkit-lan-webcam/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/gabrielogregorio/devkit-lan-webcam/actions/workflows/codeql-analysis.yml)
 [![Release](https://img.shields.io/github/v/release/gabrielogregorio/devkit-lan-webcam)](https://github.com/gabrielogregorio/devkit-lan-webcam/releases)
 
+<br>
+
+<img src="docs/camera-page.png" alt="The page on the camera device: preview, zoom slider, Mirror, Rotate 90°, Fit, Reset, Back and Front camera buttons, lens dropdown, Start streaming and Stop" width="420">
+
 </div>
 
 ## About
@@ -30,6 +34,11 @@ Turns the camera of any device on the same network (phone, tablet, another lapto
 camera and sends the frames; on the PC they become the `/dev/video10` device that apps (Chrome,
 Zoom, OBS, Meet…) list as the **"LAN Webcam"** camera. No app to install on the device: a browser
 with camera access is enough.
+
+> **Same network required.** The camera device and the PC must be on the same local network (same
+> Wi-Fi or the same router, cable counts). The page is reached by the PC's local IP
+> (`https://<pc-ip>:9443`); nothing goes through the internet, so it does not work from another
+> network or over mobile data. A guest Wi-Fi with client isolation also blocks it.
 
 - **Live controls on the page:** zoom (slider or pinch), drag to move, mirror, rotate 90°, fit or
   crop, reset, back/front camera buttons and a lens dropdown.
@@ -63,6 +72,14 @@ Built and tested on Ubuntu 24.04.
    ./run.sh            # starts and prints the address for the device
    ```
    Use Google Chrome from the `.deb` on the PC (the snap does not see `/dev/video10`).
+5. **Optional, top bar icon:** the companion tray app (`devkit-bandeja-apps`, cloned next to this
+   folder) turns the server on and off and shows a QR code with the address, so the device does not
+   need it typed:
+
+   <img src="docs/tray-qr-code.png" alt="Top bar menu of the webcam icon: on air on port 9443, On (checked), the address for the device, Show QR code, Open in browser, View log; next to it the QR code window with the https address" width="640">
+
+   Its menu is in Brazilian Portuguese (Ligado = On, Mostrar QR code = Show QR code). The address is
+   the PC's local IP, so the QR code only works on the same network.
 
 **Outside the repository:**
 
@@ -167,8 +184,8 @@ Issues use forms (`bug_report.yml`, `feature_request.yml`); PRs start from `pull
 ## Usage (order matters)
 
 1. Start the server on the PC (`./run.sh`).
-2. **On the camera device** (same network): open `https://<pc-ip>:9443` and accept the certificate
-   warning. Pick the camera (**📷 Back** / **🤳 Front** or the dropdown): the preview shows up even
+2. **On the camera device** (on the **same network** as the PC): open `https://<pc-ip>:9443` (or scan
+   the QR code from the tray app) and accept the certificate warning. Pick the camera (**📷 Back** / **🤳 Front** or the dropdown): the preview shows up even
    before streaming. Adjust zoom and position, then **Start streaming** (status 🟢). Hold a phone
    **sideways (landscape)** to match the 16:9 webcam. Keep the tab open and the screen on.
 3. **On the PC:** apps only look for cameras when they open, so close and reopen the target app
@@ -218,6 +235,7 @@ Issues use forms (`bug_report.yml`, `feature_request.yml`); PRs start from `pull
 | `requirements*.txt` | exports of the lock, never edited by hand |
 | `VERSION` | current version; the release workflow tags from it |
 | `.github/` | workflows, setup action, issue forms, PR template, Dependabot |
+| `docs/` | README images (camera page, tray QR code), saved without metadata |
 
 Adding page text: write it in English, either as `t('…')` in the script or as the content of an
 element with `data-i18n` (`data-i18n-html` when it has markup), and add the pt-BR line to `PT_BR` in
@@ -258,6 +276,8 @@ uv export --frozen --all-groups  --no-emit-project --no-hashes -o requirements-d
 
 ## Limitations
 
+- **Same local network only.** The device reaches the PC by its LAN IP; another network, mobile data
+  or a Wi-Fi with client isolation does not work.
 - **Trusted network only.** `/ws` has no authentication: anyone on the same LAN who opens
   `wss://<ip>:9443/ws` feeds your virtual webcam. Do not expose the port to the internet.
 - **One camera at a time.** Each WebSocket connection starts its own ffmpeg on the same
