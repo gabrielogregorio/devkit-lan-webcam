@@ -83,6 +83,10 @@ Built and tested on Ubuntu 24.04.
    the same network. The QR code needs `sudo apt install python3-segno`; without it the window
    shows only the address. `./tray_icon.py --remove` takes the icon out of the login.
 
+   Menu: the status line ("LAN Webcam (camera over the network): on air (port 9443)"), **On**
+   (starts or stops the server), the address for the device, **Show QR code**, **Open in the
+   browser**, **View log** (the server output). A middle click on the icon toggles it.
+
 **Outside the repository:**
 
 | Path | What |
