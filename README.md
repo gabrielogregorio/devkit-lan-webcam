@@ -72,14 +72,16 @@ Built and tested on Ubuntu 24.04.
    ./run.sh            # starts and prints the address for the device
    ```
    Use Google Chrome from the `.deb` on the PC (the snap does not see `/dev/video10`).
-5. **Optional, top bar icon:** the companion tray app (`devkit-bandeja-apps`, cloned next to this
-   folder) turns the server on and off and shows a QR code with the address, so the device does not
-   need it typed:
+5. **Top bar icon (optional):** `./tray_icon.py --install` puts an icon on the top bar at every
+   login, gray while off. Its menu turns the server on and off; turning it on opens a QR code with
+   the address, so the device does not need it typed:
 
    <img src="docs/tray-qr-code.png" alt="Top bar menu of the webcam icon: on air on port 9443, On (checked), the address for the device, Show QR code, Open in browser, View log; next to it the QR code window with the https address" width="640">
 
-   Its menu is in Brazilian Portuguese (Ligado = On, Mostrar QR code = Show QR code). The address is
-   the PC's local IP, so the QR code only works on the same network.
+   The menu follows the system language (the screenshot is in Brazilian Portuguese: Ligado = On,
+   Mostrar QR code = Show QR code). The address is the PC's local IP, so the QR code only works on
+   the same network. The QR code needs `sudo apt install python3-segno`; without it the window
+   shows only the address. `./tray_icon.py --remove` takes the icon out of the login.
 
 **Outside the repository:**
 
@@ -101,6 +103,10 @@ Moved the folder? Recreate the venv (`mv .venv trash/` and `./run.sh` creates it
 ./run.sh status     # server + virtual webcam
 ./run.sh stop
 ./run.sh restart
+
+# Top bar icon (on/off, QR code), at every login
+./tray_icon.py --install
+./tray_icon.py --remove
 
 # Test (never touches port 9443 nor the real /dev/video10)
 ./run-tests.sh                      # lint + backend + frontend + launcher (~2 s)
@@ -185,7 +191,7 @@ Issues use forms (`bug_report.yml`, `feature_request.yml`); PRs start from `pull
 
 1. Start the server on the PC (`./run.sh`).
 2. **On the camera device** (on the **same network** as the PC): open `https://<pc-ip>:9443` (or scan
-   the QR code from the tray app) and accept the certificate warning. Pick the camera (**📷 Back** / **🤳 Front** or the dropdown): the preview shows up even
+   the QR code from the top bar icon) and accept the certificate warning. Pick the camera (**📷 Back** / **🤳 Front** or the dropdown): the preview shows up even
    before streaming. Adjust zoom and position, then **Start streaming** (status 🟢). Hold a phone
    **sideways (landscape)** to match the 16:9 webcam. Keep the tab open and the screen on.
 3. **On the PC:** apps only look for cameras when they open, so close and reopen the target app
@@ -223,6 +229,7 @@ Issues use forms (`bug_report.yml`, `feature_request.yml`); PRs start from `pull
 |---|---|
 | `run.sh` | **launcher**: `start`/`stop`/`status`/`restart`; creates the venv/certificate when missing, checks the device and `exclusive_caps`, keeps a single instance |
 | `server.py` | aiohttp HTTPS + WebSocket server; spawns the ffmpeg that feeds `/dev/video10` |
+| `tray_icon.py` | top bar icon: turns the server on and off, QR code; `--install` starts it at every login |
 | `index.html` | the device page: live preview, controls, camera choice; sends JPEGs over the WebSocket |
 | `view.js` | pure view state logic (zoom/pan/rotation/fit), imported by the page and tested in Node |
 | `i18n.js` | language detection and the pt-BR catalog (English is the source text) |
