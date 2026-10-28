@@ -1,6 +1,6 @@
 [project]
 name = "devkit-lan-webcam"
-version = "1.0.0"
+version = "1.1.0"
 description = "Any camera on the local network becomes a virtual webcam on the PC (Ubuntu): HTTPS/WebSocket server that feeds /dev/video10 through ffmpeg + v4l2loopback"
 requires-python = ">=3.12"
 dependencies = [
@@ -22,7 +22,7 @@ target-version = "py312"
 select = ["E", "F", "W", "B", "I", "UP"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["server", "conftest"]
+known-first-party = ["server", "conftest", "tray_icon"]
 
 [tool.uv]
 # "Virtual" project: not an installable package, only scripts (server.py, run.sh).
