@@ -80,8 +80,11 @@ Built and tested on Ubuntu 24.04.
 
    The menu follows the system language (the screenshot is in Brazilian Portuguese: Ligado = On,
    Mostrar QR code = Show QR code). The address is the PC's local IP, so the QR code only works on
-   the same network. The QR code needs `sudo apt install python3-segno`; without it the window
-   shows only the address. `./tray_icon.py --remove` takes the icon out of the login.
+   the same network. Without `python3-segno` the QR window shows only the address.
+   `./tray_icon.py --remove` takes the icon out of the login.
+   The icon runs on the system python3 and needs `sudo apt install python3-gi gir1.2-gtk-3.0
+   gir1.2-ayatanaappindicator3-0.1` (already on a standard Ubuntu desktop) plus `python3-segno` for
+   the QR code.
 
    Menu: the status line ("LAN Webcam (camera over the network): on air (port 9443)"), **On**
    (starts or stops the server), the address for the device, **Show QR code**, **Open in the
@@ -96,6 +99,9 @@ Built and tested on Ubuntu 24.04.
 | `/etc/modprobe.d/v4l2loopback.conf` | module options (`video_nr=10`, `card_label="LAN Webcam"`, `exclusive_caps=1`) |
 | `/etc/modules-load.d/v4l2loopback.conf` | loads the module at boot |
 | `/usr/local/sbin/webcam-cam-reload`, `/etc/sudoers.d/webcam` | optional passwordless module reload (step 3) |
+| `~/.config/autostart/devkit-lan-webcam-tray.desktop` | starts the top bar icon at login, off (`./tray_icon.py --install`; `--remove` takes it out) |
+| `~/.local/share/applications/devkit-lan-webcam-tray.desktop` | app menu shortcut for the icon (same command) |
+| `~/.cache/devkit-lan-webcam/` | the icon's `server.log` ("View log"), on/off SVGs, the QR code PNG and its lock |
 
 Moved the folder? Recreate the venv (`mv .venv trash/` and `./run.sh` creates it again).
 
