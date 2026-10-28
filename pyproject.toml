@@ -1,6 +1,6 @@
 [project]
 name = "devkit-lan-webcam"
-version = "1.0.0"
+version = "1.1.0"
 description = "Any camera on the local network becomes a virtual webcam on the PC (Ubuntu): HTTPS/WebSocket server that feeds /dev/video10 through ffmpeg + v4l2loopback"
 requires-python = ">=3.12"
 dependencies = [
