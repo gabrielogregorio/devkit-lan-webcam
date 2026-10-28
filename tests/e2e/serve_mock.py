@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Sobe o server.py real para o E2E com o ffmpeg trocado por um `cat` que descarta
-os frames: exercita HTTP/TLS/WebSocket de verdade sem encostar no /dev/video10.
+Starts the real server.py for the E2E with ffmpeg swapped for a `cat` that drops the
+frames: real HTTP/TLS/WebSocket without touching /dev/video10.
 
-Expõe também `GET /frames` -> {"frames": <n>} para os testes validarem que os
-blobs chegaram de fato ao servidor. Isso substitui o evento `framesent` do
-Playwright, que não dispara de forma confiável no Chromium headless do CI.
+Also exposes `GET /frames` -> {"frames": <n>} so the tests can check that the blobs
+really reached the server. That replaces Playwright's `framesent` event, which does not
+fire reliably in headless Chromium on CI.
 
-Uso:  PORT=19443 .venv/bin/python tests/e2e/serve_mock.py
+Usage:  PORT=19443 .venv/bin/python tests/e2e/serve_mock.py
 """
 import os
 import subprocess
@@ -18,11 +18,11 @@ from aiohttp import web
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT_ROOT)
 
-import server
+import server  # noqa: E402
 
 frames_received = 0
 
-# Captura os originais ANTES de sobrescrever (evita recursão infinita).
+# Keep the originals BEFORE overriding them (avoids infinite recursion).
 _original_write_frame = server.write_frame
 _original_build_app = server.build_app
 

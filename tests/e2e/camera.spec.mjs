@@ -15,7 +15,7 @@ const CAMERA_SWITCH_CLICKS = 6;
 
 async function withPage(runScenario) {
   const browser = await chromium.launch({ args: LAUNCH_ARGS });
-  const context = await browser.newContext({ ignoreHTTPSErrors: true });
+  const context = await browser.newContext({ ignoreHTTPSErrors: true, locale: 'en-US' });
   await context.grantPermissions(['camera']);
   const page = await context.newPage();
   try {
@@ -26,25 +26,26 @@ async function withPage(runScenario) {
 }
 
 const waitForCameraOpened = (page) => page.waitForFunction(
-  () => !/Abrindo/.test(document.getElementById('status').textContent),
+  () => !/Opening/.test(document.getElementById('status').textContent),
   { timeout: STATUS_TIMEOUT_MS },
 );
 
-test('pagina carrega via HTTPS self-signed e o preview aparece sem transmitir', async () => {
+test('page loads over self-signed HTTPS and the preview shows without streaming', async () => {
   await withPage(async (page) => {
     await page.goto(BASE_URL, { waitUntil: 'load' });
-    assert.ok(await page.$('#preview'), 'canvas de preview existe');
+    assert.ok(await page.$('#preview'), 'preview canvas exists');
+    assert.equal(await page.textContent('#startBtn'), 'Start streaming');
 
-    // toca traseira: a camera fake abre e o status sai do estado inicial
+    // tap Back: the fake camera opens and the status leaves its initial state
     await page.click('#backBtn');
     await page.waitForFunction(
-      () => /Pré-visualizando|Transmitindo|câmera/i.test(document.getElementById('status').textContent),
+      () => /Previewing|Streaming|camera/i.test(document.getElementById('status').textContent),
       { timeout: STATUS_TIMEOUT_MS },
     );
   });
 });
 
-test('trocar Traseira/Frontal nao trava e o status reflete a troca', async () => {
+test('switching Back/Front does not hang and the status follows', async () => {
   await withPage(async (page) => {
     await page.goto(BASE_URL, { waitUntil: 'load' });
     await page.click('#backBtn');
@@ -55,12 +56,12 @@ test('trocar Traseira/Frontal nao trava e o status reflete a troca', async () =>
     await waitForCameraOpened(page);
     const statusAfterFrontCamera = await page.textContent('#status');
 
-    assert.ok(statusAfterBackCamera, 'status preenchido apos abrir a traseira');
-    assert.ok(statusAfterFrontCamera, 'status preenchido apos abrir a frontal');
+    assert.ok(statusAfterBackCamera, 'status filled after opening the back camera');
+    assert.ok(statusAfterFrontCamera, 'status filled after opening the front camera');
   });
 });
 
-test('cliques rapidos em Traseira/Frontal sao serializados (sem erro nao tratado)', async () => {
+test('fast Back/Front clicks are serialized (no unhandled error)', async () => {
   await withPage(async (page) => {
     const pageErrors = [];
     page.on('pageerror', (pageError) => pageErrors.push(pageError.message));
@@ -71,11 +72,11 @@ test('cliques rapidos em Traseira/Frontal sao serializados (sem erro nao tratado
     }
     await page.waitForTimeout(1500);
 
-    assert.deepEqual(pageErrors, [], 'nenhum erro de pagina ao trocar rapido');
+    assert.deepEqual(pageErrors, [], 'no page error when switching fast');
   });
 });
 
-test('Iniciar transmissao abre o WebSocket e o servidor recebe os blobs', async () => {
+test('Start streaming opens the WebSocket and the server gets the blobs', async () => {
   await withPage(async (page) => {
     await page.goto(BASE_URL, { waitUntil: 'load' });
     await page.click('#backBtn');
@@ -83,18 +84,18 @@ test('Iniciar transmissao abre o WebSocket e o servidor recebe os blobs', async 
 
     await page.click('#startBtn');
     await page.waitForFunction(
-      () => /Transmitindo/.test(document.getElementById('status').textContent),
+      () => /Streaming/.test(document.getElementById('status').textContent),
       { timeout: STATUS_TIMEOUT_MS },
     );
     await page.waitForTimeout(FRAME_COLLECTION_MS);
 
-    // Verifica no lado do servidor (mais robusto que o evento `framesent` do
-    // Playwright, que não dispara de forma confiável no Chromium headless).
+    // Checked on the server side (sturdier than Playwright's `framesent` event,
+    // which does not fire reliably in headless Chromium).
     const { frames } = await page.evaluate(async () => {
       const response = await fetch('/frames');
       return response.json();
     });
-    assert.ok(frames > 0, 'pelo menos 1 frame recebido pelo servidor');
+    assert.ok(frames > 0, 'at least 1 frame reached the server');
 
     await page.click('#stopBtn');
   });

@@ -20,8 +20,8 @@ def server_module() -> ModuleType:
 
 
 class FakeFfmpegProcess:
-    """Dublê do ffmpeg: registra o que foi escrito no stdin e como foi encerrado,
-    sem disparar o binário real nem encostar no /dev/video10."""
+    """ffmpeg double: records what was written to stdin and how it was stopped,
+    without starting the real binary or touching /dev/video10."""
 
     def __init__(self) -> None:
         self.stdin = MagicMock()
@@ -48,7 +48,7 @@ class FakeFfmpegProcess:
 
 @pytest.fixture
 def fake_ffmpeg(server_module: ModuleType, monkeypatch: pytest.MonkeyPatch) -> list[FakeFfmpegProcess]:
-    """Lista dos processos falsos criados pelo handler (normalmente 1 por conexão)."""
+    """Fake processes the handler created (normally 1 per connection)."""
     created_processes: list[FakeFfmpegProcess] = []
 
     def factory() -> FakeFfmpegProcess:
@@ -65,7 +65,7 @@ async def client(
     server_module: ModuleType,
     fake_ffmpeg: list[FakeFfmpegProcess],
 ) -> AsyncIterator[TestClient]:
-    """TestClient HTTP sem TLS, em porta efêmera: nunca sobe na 9443 nem prende o device."""
+    """Plain HTTP TestClient on an ephemeral port: never binds 9443 nor holds the device."""
     test_client = TestClient(TestServer(server_module.build_app()))
     await test_client.start_server()
     yield test_client

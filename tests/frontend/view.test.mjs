@@ -8,7 +8,7 @@ import {
 const CANVAS_WIDTH = 1280;
 const CANVAS_HEIGHT = 720;
 
-test('reset volta ao default (testplan 6.7): zoom=1, sem pan/espelho, rotation=0, contain', () => {
+test('reset goes back to the default: zoom=1, no pan/mirror, rotation=0, contain', () => {
   const view = resetView();
   assert.equal(view.zoom, 1);
   assert.equal(view.offsetX, 0);
@@ -16,10 +16,10 @@ test('reset volta ao default (testplan 6.7): zoom=1, sem pan/espelho, rotation=0
   assert.equal(view.mirror, false);
   assert.equal(view.rotation, 0);
   assert.equal(view.fit, 'contain');
-  assert.notEqual(view, DEFAULT_VIEW, 'reset devolve cópia nova, não a referência do default');
+  assert.notEqual(view, DEFAULT_VIEW, 'reset returns a new copy, not the default reference');
 });
 
-test('mirror inverte horizontal (mirrorX = -1) e alterna o flag', () => {
+test('mirror flips horizontally (mirrorX = -1) and toggles the flag', () => {
   let view = resetView();
   assert.equal(computeDrawParams(view, 1920, 1080, CANVAS_WIDTH, CANVAS_HEIGHT).mirrorX, 1);
   view = toggleMirror(view);
@@ -29,7 +29,7 @@ test('mirror inverte horizontal (mirrorX = -1) e alterna o flag', () => {
   assert.equal(view.mirror, false);
 });
 
-test('rotation cicla 0->90->180->270->0 (testplan 6.5)', () => {
+test('rotation cycles 0->90->180->270->0', () => {
   let view = resetView();
   const rotations = [];
   for (let step = 0; step < 5; step++) {
@@ -39,13 +39,13 @@ test('rotation cicla 0->90->180->270->0 (testplan 6.5)', () => {
   assert.deepEqual(rotations, [90, 180, 270, 0, 90]);
 });
 
-test('normalizeRotation normaliza negativos e maiores que 360', () => {
+test('normalizeRotation handles negatives and values above 360', () => {
   assert.equal(normalizeRotation(-90), 270);
   assert.equal(normalizeRotation(450), 90);
   assert.equal(normalizeRotation(360), 0);
 });
 
-test('fit alterna contain (Math.min) <-> cover (Math.max) e a escala base bate', () => {
+test('fit toggles contain (Math.min) <-> cover (Math.max) and the base scale matches', () => {
   const videoWidth = 1000;
   const videoHeight = 1000;
   let view = resetView();
@@ -66,7 +66,7 @@ test('fit alterna contain (Math.min) <-> cover (Math.max) e a escala base bate',
   assert.equal(drawParams.baseScale, CANVAS_WIDTH / videoWidth);
 });
 
-test('cover preenche o canvas inteiro; contain cabe dentro', () => {
+test('cover fills the whole canvas; contain fits inside it', () => {
   const videoWidth = 1000;
   const videoHeight = 1000;
   const contain = computeDrawParams(resetView(), videoWidth, videoHeight, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -78,7 +78,7 @@ test('cover preenche o canvas inteiro; contain cabe dentro', () => {
   assert.ok(cover.drawWidth >= CANVAS_WIDTH - 1e-9 && cover.drawHeight >= CANVAS_HEIGHT - 1e-9);
 });
 
-test('zoom pelo slider e pela pinça produzem o MESMO estado', () => {
+test('zoom from the slider and from a pinch give the SAME state', () => {
   const zoomViaSlider = setZoom(resetView(), 2).zoom;
   const zoomViaPinch = zoomFromPinch(1, 100, 200);
   assert.equal(zoomViaSlider, 2);
@@ -86,7 +86,7 @@ test('zoom pelo slider e pela pinça produzem o MESMO estado', () => {
   assert.equal(zoomViaSlider, zoomViaPinch);
 });
 
-test('zoom faz clamp nos limites 0.3..5 (slider e pinça)', () => {
+test('zoom clamps to 0.3..5 (slider and pinch)', () => {
   assert.equal(setZoom(resetView(), 99).zoom, ZOOM_MAX);
   assert.equal(setZoom(resetView(), 0).zoom, ZOOM_MIN);
   assert.equal(zoomFromPinch(1, 100, 100000), ZOOM_MAX);
@@ -94,7 +94,7 @@ test('zoom faz clamp nos limites 0.3..5 (slider e pinça)', () => {
   assert.equal(clamp(7, ZOOM_MIN, ZOOM_MAX), ZOOM_MAX);
 });
 
-test('zoom escala as dimensões desenhadas linearmente', () => {
+test('zoom scales the drawn size linearly', () => {
   const videoWidth = 1920;
   const videoHeight = 1080;
   const atZoom1 = computeDrawParams(resetView(), videoWidth, videoHeight, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -105,7 +105,7 @@ test('zoom escala as dimensões desenhadas linearmente', () => {
   assert.ok(Math.abs(atZoom2.drawHeight - atZoom1.drawHeight * 2) < 1e-9);
 });
 
-test('pan desloca a translação (translateX, translateY) pelo offset acumulado', () => {
+test('pan moves the translation (translateX, translateY) by the accumulated offset', () => {
   let view = resetView();
   view = panBy(view, 40, -30);
   view = panBy(view, 10, 5);
@@ -117,7 +117,7 @@ test('pan desloca a translação (translateX, translateY) pelo offset acumulado'
   assert.equal(drawParams.translateY, CANVAS_HEIGHT / 2 - 25);
 });
 
-test('rotation 90/270 troca largura<->altura no cálculo da escala', () => {
+test('rotation 90/270 swaps width<->height in the scale', () => {
   const videoWidth = 1920;
   const videoHeight = 1080;
   const withoutRotation = computeDrawParams(resetView(), videoWidth, videoHeight, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -130,7 +130,7 @@ test('rotation 90/270 troca largura<->altura no cálculo da escala', () => {
   assert.equal(rotated90.baseScale, Math.min(CANVAS_HEIGHT / videoWidth, CANVAS_WIDTH / videoHeight));
 });
 
-test('as funções são puras: não mutam o view de entrada', () => {
+test('the functions are pure: they do not mutate the input view', () => {
   const view = resetView();
   const snapshot = JSON.stringify(view);
   toggleMirror(view);

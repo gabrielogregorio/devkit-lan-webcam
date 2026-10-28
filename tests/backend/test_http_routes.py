@@ -28,6 +28,19 @@ async def test_view_js_served_and_no_cache(client: TestClient) -> None:
     assert "computeDrawParams" in body
 
 
+async def test_i18n_js_served_and_no_cache(client: TestClient) -> None:
+    response = await client.get("/i18n.js")
+    assert response.status == 200
+    assert response.headers.get("Cache-Control") == NO_CACHE
+    assert "PT_BR" in await response.text()
+
+
+async def test_private_files_not_served(client: TestClient) -> None:
+    for path in ("/key.pem", "/cert.pem", "/server.py", "/../server.py"):
+        response = await client.get(path)
+        assert response.status == 404, path
+
+
 async def test_unknown_route_404(client: TestClient) -> None:
     response = await client.get("/nope")
     assert response.status == 404

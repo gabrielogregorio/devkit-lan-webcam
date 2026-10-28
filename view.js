@@ -1,7 +1,7 @@
 /*
- * Lógica pura de "view-state": sem DOM e sem canvas, só estado e matemática.
- * O index.html importa como ES module e tests/frontend/view.test.mjs importa o
- * mesmo arquivo no Node, então nada aqui pode depender do navegador.
+ * Pure "view state" logic: no DOM and no canvas, only state and math.
+ * index.html imports it as an ES module and tests/frontend/view.test.mjs imports the
+ * same file in Node, so nothing here may depend on the browser.
  */
 export const ZOOM_MIN = 0.3;
 export const ZOOM_MAX = 5;
@@ -45,8 +45,8 @@ export const zoomFromPinch = (startZoom, startDistance, currentDistance) =>
   clamp((startZoom * currentDistance) / startDistance, ZOOM_MIN, ZOOM_MAX);
 
 /*
- * Traduz o view-state para os argumentos que o drawFrame() do index.html aplica,
- * nesta ordem:
+ * Turns the view state into the arguments that drawFrame() in index.html applies,
+ * in this order:
  *
  *   ctx.translate(translateX, translateY)
  *   ctx.rotate(rotation * PI/180)

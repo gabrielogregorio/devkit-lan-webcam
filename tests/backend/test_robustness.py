@@ -11,7 +11,7 @@ async def client_spawn_fails(
     server_module: ModuleType,
     monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncIterator[TestClient]:
-    """Client cujo make_ffmpeg sempre falha, simulando o binário ffmpeg ausente."""
+    """Client whose make_ffmpeg always fails, as if the ffmpeg binary were missing."""
     def raise_ffmpeg_missing() -> None:
         raise FileNotFoundError("ffmpeg not found")
 

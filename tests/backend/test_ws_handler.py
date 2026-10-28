@@ -1,6 +1,7 @@
 import asyncio
 
 from aiohttp.test_utils import TestClient
+
 from conftest import FakeFfmpegProcess
 
 HANDLER_SETTLE_SECONDS = 0.05
@@ -15,7 +16,7 @@ async def test_ws_spawns_one_ffmpeg_and_writes_frames(
 ) -> None:
     websocket = await client.ws_connect("/ws")
     await asyncio.sleep(HANDLER_SETTLE_SECONDS)
-    assert len(fake_ffmpeg) == 1, "deve subir exatamente 1 ffmpeg por conexão"
+    assert len(fake_ffmpeg) == 1, "exactly 1 ffmpeg per connection"
 
     await websocket.send_bytes(JPEG_FRAME_A)
     await websocket.send_bytes(JPEG_FRAME_B)
@@ -70,5 +71,5 @@ async def test_broken_pipe_breaks_loop_cleanly(
     await asyncio.sleep(HANDLER_SETTLE_SECONDS)
 
     response = await client.get("/")
-    assert response.status == 200, "o servidor segue de pé mesmo com o ffmpeg morto"
+    assert response.status == 200, "the server stays up even with ffmpeg dead"
     await websocket.close()

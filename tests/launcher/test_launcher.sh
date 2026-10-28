@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Testes do launcher run.sh — SEM sudo, SEM subir servidor real, SEM device real.
+# Tests of the run.sh launcher - NO sudo, NO real server, NO real device.
 #
-# Estrategia: para cada caso, montamos um "sandbox" temporario com uma COPIA do
-# run.sh real e stubs no PATH (pgrep/pkill/hostname/cat/sleep) + um
-# .venv/bin/python FALSO que so registra que foi "exec"ado (em vez de subir o
-# servidor de verdade). Assim exercitamos o script real sem efeitos colaterais.
+# Approach: each case builds a temporary sandbox with a COPY of the real run.sh,
+# stubs on the PATH (pgrep/pkill/hostname/cat/sleep) and a FAKE .venv/bin/python
+# that only records it was exec'd (instead of starting the server). That exercises
+# the real script with no side effects.
 #
-# Uso:  bash tests/launcher/test_launcher.sh
+# Usage:  bash tests/launcher/test_launcher.sh
 set -u
 
 REAL_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -17,20 +17,20 @@ ok()   { PASS=$((PASS+1)); echo "  ok   - $1"; }
 nok()  { FAIL=$((FAIL+1)); echo "  FAIL - $1"; echo "         $2"; }
 
 # assert_contains <haystack> <needle> <msg>
-assert_contains() { case "$1" in *"$2"*) ok "$3";; *) nok "$3" "esperava conter: '$2' | obtido: '$1'";; esac; }
-assert_not_contains() { case "$1" in *"$2"*) nok "$3" "NAO deveria conter: '$2'";; *) ok "$3";; esac; }
-assert_eq() { [ "$1" = "$2" ] && ok "$3" || nok "$3" "esperava '$2', obtido '$1'"; }
+assert_contains() { case "$1" in *"$2"*) ok "$3";; *) nok "$3" "expected to contain: '$2' | got: '$1'";; esac; }
+assert_not_contains() { case "$1" in *"$2"*) nok "$3" "should NOT contain: '$2'";; *) ok "$3";; esac; }
+assert_eq() { [ "$1" = "$2" ] && ok "$3" || nok "$3" "expected '$2', got '$1'"; }
 
-# ---- monta um sandbox isolado e ecoa o caminho ----
+# ---- builds an isolated sandbox and echoes its path ----
 make_sandbox() {
   local sb; sb="$(mktemp -d)"
   cp "$LAUNCHER_SH" "$sb/run.sh"
-  : > "$sb/server.py"          # placeholder (o python falso ignora)
-  : > "$sb/cert.pem"; : > "$sb/key.pem"   # pula geracao de cert
+  : > "$sb/server.py"          # placeholder (the fake python ignores it)
+  : > "$sb/cert.pem"; : > "$sb/key.pem"   # skips the certificate generation
   : > "$sb/reload-cam.sh"
   mkdir -p "$sb/.venv/bin" "$sb/bin"
 
-  # python FALSO: registra o exec e sai 0 (nao sobe servidor)
+  # FAKE python: records the exec and exits 0 (no server)
   cat > "$sb/.venv/bin/python" <<EOF
 #!/usr/bin/env bash
 echo "PYTHON_EXEC \$*" >> "$sb/exec.log"
@@ -38,7 +38,7 @@ exit 0
 EOF
   chmod +x "$sb/.venv/bin/python"
 
-  # stubs no PATH
+  # stubs on the PATH
   cat > "$sb/bin/pgrep" <<EOF
 #!/usr/bin/env bash
 [ "\${PGREP_RUNNING:-0}" = "1" ] && exit 0 || exit 1
@@ -67,75 +67,74 @@ EOF
   echo "$sb"
 }
 
-run_webcam() {  # run_webcam <sandbox> <args...> ; usa env já setado pelo caller
+run_webcam() {  # run_webcam <sandbox> <args...> ; uses the env the caller set
   local sb="$1"; shift
   ( cd "$sb" && PATH="$sb/bin:$PATH" bash "$sb/run.sh" "$@" ) 2>&1
 }
 
 echo "TAP-ish launcher tests"
 
-# 1) status PARADO
+# 1) status STOPPED
 sb=$(make_sandbox)
 out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 EXCLCAPS="Y,N,N" run_webcam "$sb" status)
-: > "$sb/dev_video10"  # device presente p/ a 2a linha do status (refaz abaixo)
-assert_contains "$out" "Servidor parado" "status: mostra 'Servidor parado' quando nada roda"
+assert_contains "$out" "Server stopped" "status: shows 'Server stopped' when nothing runs"
 rm -rf "$sb"
 
-# 1b) status PARADO com device presente -> mostra exclusive_caps
+# 1b) status STOPPED with the device present -> shows exclusive_caps
 sb=$(make_sandbox); : > "$sb/dev_video10"
 out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 EXCLCAPS="Y,N,N" run_webcam "$sb" status)
-assert_contains "$out" "Servidor parado" "status(device): parado"
-assert_contains "$out" "exclusive_caps=Y" "status: reporta exclusive_caps do device"
+assert_contains "$out" "Server stopped" "status(device): stopped"
+assert_contains "$out" "exclusive_caps=Y" "status: reports the device exclusive_caps"
 rm -rf "$sb"
 
-# 2) status RODANDO
+# 2) status RUNNING
 sb=$(make_sandbox); : > "$sb/dev_video10"
 out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=1 EXCLCAPS="Y,N,N" run_webcam "$sb" status)
-assert_contains "$out" "Servidor RODANDO" "status: mostra 'RODANDO' quando pgrep acha o processo"
-assert_contains "$out" "192.168.0.101" "status: mostra o IP no link"
+assert_contains "$out" "Server RUNNING" "status: shows 'RUNNING' when pgrep finds the process"
+assert_contains "$out" "192.168.0.101" "status: shows the IP in the link"
 rm -rf "$sb"
 
-# 3) start SEM device -> exit!=0, manda rodar reload-cam.sh, NAO sobe python
-sb=$(make_sandbox)  # sem criar dev_video10
+# 3) start WITHOUT the device -> exit!=0, says to run reload-cam.sh, does NOT start python
+sb=$(make_sandbox)  # no dev_video10
 out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 run_webcam "$sb" start); rc=$?
-assert_eq "$rc" "1" "start sem device: exit code 1"
-assert_contains "$out" "reload-cam.sh" "start sem device: orienta rodar reload-cam.sh"
-assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "no" "start sem device: NAO faz exec do python"
+assert_eq "$rc" "1" "start without device: exit code 1"
+assert_contains "$out" "reload-cam.sh" "start without device: says to run reload-cam.sh"
+assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "no" "start without device: does NOT exec python"
 rm -rf "$sb"
 
-# 4) start com device porem exclusive_caps != Y -> avisa, mas SOBE (exec python)
+# 4) start with the device but exclusive_caps != Y -> warns, but STARTS (exec python)
 sb=$(make_sandbox); : > "$sb/dev_video10"
 out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 EXCLCAPS="N,N,N" run_webcam "$sb" start)
-assert_contains "$out" "exclusive_caps=N" "start: avisa quando exclusive_caps != Y"
-assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "yes" "start(caps=N): ainda assim sobe o servidor"
+assert_contains "$out" "exclusive_caps=N" "start: warns when exclusive_caps != Y"
+assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "yes" "start(caps=N): still starts the server"
 rm -rf "$sb"
 
-# 5) Instancia unica: start mata o anterior (stop_server/pkill) ANTES de subir
+# 5) Single instance: start kills the previous one (stop_server/pkill) BEFORE starting
 sb=$(make_sandbox); : > "$sb/dev_video10"
 out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 EXCLCAPS="Y,N,N" run_webcam "$sb" start)
 pkilllog=$(cat "$sb/pkill.log" 2>/dev/null)
-# o padrao usa [s]erver.py / [m]jpeg pra nao casar consigo mesmo no pgrep/pkill
-assert_contains "$pkilllog" "erver.py" "instancia unica: start chama pkill do server.py (mata anterior)"
-assert_contains "$pkilllog" "jpeg -i pipe:0" "instancia unica: start tambem mata ffmpeg orfao"
-assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "yes" "start: faz exec do python (sobe 1 servidor)"
+# the pattern uses [s]erver.py / [m]jpeg so pgrep/pkill do not match themselves
+assert_contains "$pkilllog" "erver" "single instance: start pkills server.py (kills the previous one)"
+assert_contains "$pkilllog" "jpeg -i pipe:0" "single instance: start also kills an orphan ffmpeg"
+assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "yes" "start: execs python (starts 1 server)"
 exec_count=$(grep -c PYTHON_EXEC "$sb/exec.log")
-assert_eq "$exec_count" "1" "start: exatamente 1 exec do servidor"
+assert_eq "$exec_count" "1" "start: exactly 1 exec of the server"
 rm -rf "$sb"
 
-# 6) stop -> chama pkill e informa 'parado'
+# 6) stop -> calls pkill and says 'stopped'
 sb=$(make_sandbox)
 out=$(CAM_DEVICE="$sb/dev_video10" run_webcam "$sb" stop)
-assert_contains "$out" "Servidor parado" "stop: informa que parou"
-assert_contains "$(cat "$sb/pkill.log" 2>/dev/null)" "erver.py" "stop: chama pkill do server.py"
+assert_contains "$out" "Server stopped" "stop: says it stopped"
+assert_contains "$(cat "$sb/pkill.log" 2>/dev/null)" "erver" "stop: pkills server.py"
 rm -rf "$sb"
 
-# 7) argumento invalido -> uso + exit!=0
+# 7) invalid argument -> usage + exit!=0
 sb=$(make_sandbox)
 out=$(run_webcam "$sb" banana); rc=$?
-assert_eq "$rc" "1" "arg invalido: exit 1"
-assert_contains "$out" "uso:" "arg invalido: imprime uso"
+assert_eq "$rc" "1" "invalid arg: exit 1"
+assert_contains "$out" "usage:" "invalid arg: prints usage"
 rm -rf "$sb"
 
 echo ""
-echo "launcher: $PASS passaram, $FAIL falharam"
+echo "launcher: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

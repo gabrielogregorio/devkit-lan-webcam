@@ -1,8 +1,12 @@
+__pycache__/
+*.pyc
+.ruff_cache/
+.mypy_cache/
+.venv/
+node_modules/
 *.pem
-.venv
-.claude
-__pycache__
-.mypy_cache
 *.log
-node_modules
+tmp/
+trash/
+dist/
 .omo

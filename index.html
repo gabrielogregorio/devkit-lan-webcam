@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Celular → Webcam do PC</title>
+<title data-i18n>LAN Webcam</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -38,7 +38,7 @@
 </style>
 </head>
 <body>
-  <h1>📷 Celular → Webcam do PC</h1>
+  <h1 data-i18n>📷 Camera → PC webcam</h1>
 
   <canvas id="preview"></canvas>
 
@@ -48,32 +48,44 @@
       <span id="zoomVal">1.0x</span>
     </div>
     <div class="row">
-      <button id="mirrorBtn">Espelhar</button>
-      <button id="rotBtn">Girar 90°</button>
-      <button id="fitBtn">Enquadrar</button>
-      <button id="resetBtn">Reset</button>
+      <button id="mirrorBtn" data-i18n>Mirror</button>
+      <button id="rotBtn" data-i18n>Rotate 90°</button>
+      <button id="fitBtn" data-i18n>Fit</button>
+      <button id="resetBtn" data-i18n>Reset</button>
     </div>
     <div class="row">
-      <button id="backBtn">📷 Traseira</button>
-      <button id="frontBtn">🤳 Frontal</button>
+      <button id="backBtn" data-i18n>📷 Back</button>
+      <button id="frontBtn" data-i18n>🤳 Front</button>
     </div>
     <div class="row">
       <select id="camSel"></select>
     </div>
     <div class="row">
-      <button id="startBtn" class="primary">Iniciar transmissão</button>
-      <button id="stopBtn" disabled>Parar</button>
+      <button id="startBtn" class="primary" data-i18n>Start streaming</button>
+      <button id="stopBtn" disabled data-i18n>Stop</button>
     </div>
   </div>
 
-  <div id="status">Toque em "Iniciar transmissão"</div>
-  <div class="hint">No preview: <b>arraste</b> para mover • <b>pinça</b> (2 dedos) para zoom. A câmera vira a webcam <b>"Phone Camera"</b> no PC. Mantenha a aba aberta e a tela ligada.</div>
+  <div id="status" data-i18n>Tap "Start streaming"</div>
+  <div class="hint" data-i18n-html>On the preview: <b>drag</b> to move • <b>pinch</b> (2 fingers) to zoom. The camera becomes the <b>"LAN Webcam"</b> webcam on the PC. Keep this tab open and the screen on.</div>
 
 <script type="module">
 import {
   resetView, toggleMirror, cycleRotation, toggleFit,
   setZoom, zoomFromPinch, panBy, computeDrawParams,
 } from './view.js';
+import { detectLanguage, translator } from './i18n.js';
+
+const language = detectLanguage(location.search, navigator.languages || [navigator.language]);
+const t = translator(language);
+document.documentElement.lang = language;
+// Static text is English in the HTML itself and doubles as the key.
+document.querySelectorAll('[data-i18n]').forEach((element) => {
+  element.textContent = t(element.textContent.trim());
+});
+document.querySelectorAll('[data-i18n-html]').forEach((element) => {
+  element.innerHTML = t(element.innerHTML.trim());
+});
 
 const previewCanvas = document.getElementById('preview');
 const cameraSelect = document.getElementById('camSel');
@@ -94,7 +106,7 @@ const CANVAS_HEIGHT = 720;
 const FPS = 25;
 const JPEG_QUALITY = 0.6;
 const MAX_BUFFERED_BYTES = 1_000_000;
-// O Android precisa de um respiro entre soltar e reabrir o sensor, senão dá NotReadableError.
+// Android needs a breather between releasing and reopening the sensor, or it throws NotReadableError.
 const CAMERA_RELEASE_DELAY_MS = 150;
 
 previewCanvas.width = CANVAS_WIDTH;
@@ -164,7 +176,7 @@ function sendFrame() {
   if (!streaming || !socket || socket.readyState !== WebSocket.OPEN) {
     return;
   }
-  // Rede travada não pode virar backlog de frames velhos na memória do celular.
+  // A stalled network must not pile up old frames in the device's memory.
   if (socket.bufferedAmount > MAX_BUFFERED_BYTES) {
     return;
   }
@@ -182,7 +194,7 @@ function syncZoomControls() {
 
 function syncButtons() {
   mirrorButton.classList.toggle('active', view.mirror);
-  fitButton.textContent = view.fit === 'cover' ? 'Cortar ✓' : 'Encaixar ✓';
+  fitButton.textContent = view.fit === 'cover' ? t('Crop ✓') : t('Fit ✓');
   syncZoomControls();
 }
 
@@ -258,7 +270,7 @@ previewCanvas.addEventListener('pointercancel', endPointer);
 function activeCameraLabel() {
   const videoTrack = mediaStream && mediaStream.getVideoTracks()[0];
   if (!videoTrack) {
-    return 'câmera';
+    return t('camera');
   }
   const settings = videoTrack.getSettings ? videoTrack.getSettings() : {};
   return videoTrack.label || settings.facingMode || '?';
@@ -266,24 +278,24 @@ function activeCameraLabel() {
 
 function cameraListStatusText(cameraCount) {
   if (streaming) {
-    return `${cameraCount} câmera(s) encontrada(s) - 🟢 transmitindo`;
+    return t('{count} camera(s) found - 🟢 streaming', { count: cameraCount });
   }
-  return `${cameraCount} câmera(s) encontrada(s)`;
+  return t('{count} camera(s) found', { count: cameraCount });
 }
 
 function previewStatusText() {
   if (streaming) {
-    return `🟢 Transmitindo - ${activeCameraLabel()}`;
+    return t('🟢 Streaming - {camera}', { camera: activeCameraLabel() });
   }
-  return `👁️ Pré-visualizando - ${activeCameraLabel()}`;
+  return t('👁️ Previewing - {camera}', { camera: activeCameraLabel() });
 }
 
 function cameraFailureStatusText(error, revertedStream) {
   const reason = error.name || error.message;
   if (revertedStream) {
-    return `Essa câmera não abriu (${reason}). Voltei pra anterior.`;
+    return t('That camera did not open ({reason}). Back to the previous one.', { reason });
   }
-  return `Essa câmera não abriu (${reason}). Nenhuma disponível.`;
+  return t('That camera did not open ({reason}). None available.', { reason });
 }
 
 async function listCameras() {
@@ -295,7 +307,7 @@ async function listCameras() {
     cameras.forEach((camera, index) => {
       const option = document.createElement('option');
       option.value = camera.deviceId;
-      option.textContent = camera.label || `Câmera ${index + 1}`;
+      option.textContent = camera.label || t('Camera {number}', { number: index + 1 });
       cameraSelect.appendChild(option);
     });
     if (previousDeviceId && cameras.some((camera) => camera.deviceId === previousDeviceId)) {
@@ -303,11 +315,11 @@ async function listCameras() {
     }
     setStatus(cameraListStatusText(cameras.length), cameras.length > 1 ? 'ok' : '');
   } catch {
-    // Enumerar é best-effort: sem permissão a lista fica vazia e os botões Traseira/Frontal seguem valendo.
+    // Listing is best effort: without permission the list stays empty and the Back/Front buttons still work.
   }
 }
 
-// Os rótulos das câmeras só aparecem depois da permissão, e isso chega como devicechange.
+// Camera labels only show up after the permission, and that arrives as a devicechange.
 navigator.mediaDevices?.addEventListener?.('devicechange', listCameras);
 
 function stopMediaStream() {
@@ -319,7 +331,7 @@ function stopMediaStream() {
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-// Última câmera que abriu de verdade: destino do revert quando uma lente nova falha.
+// Last camera that really opened: where we go back to when a new lens fails.
 let wantedVideoConstraint = { facingMode: { ideal: 'environment' } };
 let openingCamera = false;
 
@@ -338,14 +350,14 @@ async function attachStream(stream) {
   startRender();
 }
 
-// Abre UMA câmera por vez: cliques concorrentes prendem o sensor e derrubam as duas aberturas.
+// Opens ONE camera at a time: concurrent clicks hold the sensor and break both openings.
 async function openCamera(videoConstraint) {
   if (openingCamera) {
     return;
   }
   openingCamera = true;
   const desiredConstraint = videoConstraint || wantedVideoConstraint;
-  setStatus('Abrindo câmera…', 'warn');
+  setStatus(t('Opening camera…'), 'warn');
   try {
     stopMediaStream();
     await delay(CAMERA_RELEASE_DELAY_MS);
@@ -354,7 +366,7 @@ async function openCamera(videoConstraint) {
       stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: desiredConstraint });
       wantedVideoConstraint = desiredConstraint;
     } catch (error) {
-      // Lente auxiliar (ultra-wide/tele) costuma dar NotReadableError ao abrir por deviceId.
+      // An auxiliary lens (ultra-wide/tele) often throws NotReadableError when opened by deviceId.
       const revertedStream = await revertToLastWorkingCamera();
       if (revertedStream) {
         await attachStream(revertedStream);
@@ -375,7 +387,7 @@ async function startStreaming() {
     await openCamera(wantedVideoConstraint);
   }
   if (!mediaStream) {
-    setStatus('Sem câmera. Permita o acesso e toque Traseira/Frontal', 'err');
+    setStatus(t('No camera. Allow access and tap Back/Front'), 'err');
     return;
   }
   socket = new WebSocket(`wss://${location.host}/ws`);
@@ -387,8 +399,8 @@ async function startStreaming() {
     setStatus(previewStatusText(), 'ok');
     sendTimer = setInterval(sendFrame, 1000 / FPS);
   };
-  socket.onclose = () => stopStreaming('Conexão encerrada');
-  socket.onerror = () => setStatus('Erro de conexão WebSocket', 'err');
+  socket.onclose = () => stopStreaming(t('Connection closed'));
+  socket.onerror = () => setStatus(t('WebSocket connection error'), 'err');
 }
 
 function stopStreaming(reason) {
@@ -401,7 +413,7 @@ function stopStreaming(reason) {
     try {
       socket.close();
     } catch {
-      // Socket já morto no disconnect: fechar de novo não muda nada.
+      // The socket is already dead on disconnect: closing it again changes nothing.
     }
     socket = null;
   }
@@ -411,12 +423,12 @@ function stopStreaming(reason) {
   startButton.disabled = false;
   stopButton.disabled = true;
   cameraSelect.disabled = false;
-  setStatus(reason || 'Parado', 'warn');
+  setStatus(reason || t('Stopped'), 'warn');
 }
 
 startButton.onclick = startStreaming;
-stopButton.onclick = () => stopStreaming('Parado');
-// facingMode exact sempre abre a câmera certa; o dropdown de lentes é best-effort e reverte sozinho.
+stopButton.onclick = () => stopStreaming(t('Stopped'));
+// facingMode exact always opens the right camera; the lens dropdown is best effort and reverts on its own.
 backCameraButton.onclick = () => openCamera({ facingMode: { exact: 'environment' } });
 frontCameraButton.onclick = () => openCamera({ facingMode: { exact: 'user' } });
 cameraSelect.onchange = () => openCamera({ deviceId: { exact: cameraSelect.value } });

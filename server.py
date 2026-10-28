@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Servidor que recebe os frames da câmera do celular (via WebSocket) e os injeta
-num dispositivo virtual v4l2loopback usando ffmpeg, fazendo a câmera do celular
-aparecer como uma webcam no PC.
+Receives camera frames from a browser on the local network (over a WebSocket) and feeds them
+into a v4l2loopback virtual device through ffmpeg, so that camera shows up as a webcam on this PC.
 """
 import os
 import socket
@@ -18,10 +17,12 @@ FPS: int = int(os.environ.get("CAM_FPS", "25"))
 PORT: int = int(os.environ.get("PORT", "9443"))
 HERE: str = os.path.dirname(os.path.abspath(__file__))
 
+# ES modules the page imports; anything else in the folder (key.pem!) is never served.
+SCRIPTS: tuple[str, ...] = ("view.js", "i18n.js")
 FFMPEG_SHUTDOWN_TIMEOUT_SECONDS: int = 3
 WEBSOCKET_MAX_MESSAGE_BYTES: int = 16 * 1024 * 1024
 
-# Sem no-store o celular fica preso numa versão antiga do HTML/JS depois de cada edição.
+# Without no-store the browser keeps an old copy of the HTML/JS after every edit.
 NO_CACHE_HEADERS: dict[str, str] = {
     "Cache-Control": "no-store, no-cache, must-revalidate",
     "Pragma": "no-cache",
@@ -64,7 +65,7 @@ def make_ffmpeg() -> subprocess.Popen[bytes]:
 
 
 def write_frame(ffmpeg_process: subprocess.Popen[bytes], jpeg_frame: bytes) -> bool:
-    """False quando o ffmpeg não aceita mais frames (morreu, device sumiu, stdin fechado)."""
+    """False when ffmpeg takes no more frames (it died, the device is gone, stdin is closed)."""
     if ffmpeg_process.stdin is None:
         return False
     try:
@@ -92,18 +93,21 @@ async def index(request: web.Request) -> web.FileResponse:
     return web.FileResponse(os.path.join(HERE, "index.html"), headers=dict(NO_CACHE_HEADERS))
 
 
-async def view_js(request: web.Request) -> web.FileResponse:
-    return web.FileResponse(os.path.join(HERE, "view.js"), headers=dict(NO_CACHE_HEADERS))
+def script(name: str):
+    async def handler(request: web.Request) -> web.FileResponse:
+        return web.FileResponse(os.path.join(HERE, name), headers=dict(NO_CACHE_HEADERS))
+
+    return handler
 
 
 async def ws_handler(request: web.Request) -> web.WebSocketResponse:
     websocket = web.WebSocketResponse(max_msg_size=WEBSOCKET_MAX_MESSAGE_BYTES)
     await websocket.prepare(request)
-    print(f'[+] Celular conectado, alimentando "{DEVICE}"')
+    print(f'[+] Camera connected, feeding "{DEVICE}"')
     try:
         ffmpeg_process = make_ffmpeg()
     except OSError as error:
-        print(f'[!] Falha ao iniciar ffmpeg: "{error}"')
+        print(f'[!] Could not start ffmpeg: "{error}"')
         await websocket.close(
             code=WSCloseCode.TRY_AGAIN_LATER,
             message=b"ffmpeg failed to start",
@@ -117,7 +121,7 @@ async def ws_handler(request: web.Request) -> web.WebSocketResponse:
             elif message.type in (WSMsgType.ERROR, WSMsgType.CLOSE):
                 break
     finally:
-        print("[-] Celular desconectado, parando ffmpeg")
+        print("[-] Camera disconnected, stopping ffmpeg")
         stop_ffmpeg(ffmpeg_process)
     return websocket
 
@@ -125,7 +129,8 @@ async def ws_handler(request: web.Request) -> web.WebSocketResponse:
 def build_app() -> web.Application:
     app = web.Application()
     app.router.add_get("/", index)
-    app.router.add_get("/view.js", view_js)
+    for name in SCRIPTS:
+        app.router.add_get(f"/{name}", script(name))
     app.router.add_get("/ws", ws_handler)
     return app
 
@@ -135,8 +140,8 @@ def main() -> None:
     ssl_context.load_cert_chain(os.path.join(HERE, "cert.pem"), os.path.join(HERE, "key.pem"))
 
     print("\n" + "=" * 50)
-    print(f"  Abra no celular:  https://{local_ip_address()}:{PORT}")
-    print(f"  Webcam virtual:   {DEVICE}  ({WIDTH}x{HEIGHT}@{FPS})")
+    print(f"  Open on the camera device:  https://{local_ip_address()}:{PORT}")
+    print(f"  Virtual webcam:              {DEVICE}  ({WIDTH}x{HEIGHT}@{FPS})")
     print("=" * 50 + "\n")
     web.run_app(build_app(), host="0.0.0.0", port=PORT, ssl_context=ssl_context, print=None)
 

@@ -48,7 +48,7 @@ def test_env_vars_override_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
         importlib.reload(server)
 
 
-def test_defaults_match_claude_md(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_defaults_match_readme(monkeypatch: pytest.MonkeyPatch) -> None:
     for env_var in CAMERA_ENV_VARS:
         monkeypatch.delenv(env_var, raising=False)
     import server
