@@ -1,0 +1,29 @@
+name: 'Setup Environment'
+description: 'Creates the Python venv from the locked requirements, sets up Node and, optionally, Playwright for the E2E'
+inputs:
+  e2e:
+    description: 'Also install Playwright + Chromium and generate a throwaway HTTPS certificate'
+    default: 'false'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '22'
+
+    - name: Python venv (system python3, locked versions)
+      shell: bash
+      run: |
+        python3 -m venv .venv
+        .venv/bin/pip install --quiet --upgrade pip
+        .venv/bin/pip install --quiet -r requirements-dev.txt
+        .venv/bin/python --version
+        node --version
+
+    - name: Playwright and certificate
+      if: ${{ inputs.e2e == 'true' }}
+      shell: bash
+      run: |
+        npm install --no-save --no-package-lock --silent playwright@1.62.0
+        npx playwright install --with-deps chromium-headless-shell
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 1 -subj "/CN=lan-webcam" 2> /dev/null

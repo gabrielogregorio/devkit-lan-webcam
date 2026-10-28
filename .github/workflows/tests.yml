@@ -1,0 +1,50 @@
+name: Tests Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit Tests (backend, frontend, launcher)
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: ./.github/actions/setup-environment
+
+      - name: Run unit tests
+        run: ./run-tests.sh
+
+  e2e:
+    name: E2E Tests (Playwright, fake camera)
+    needs: unit
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: ./.github/actions/setup-environment
+        with:
+          e2e: 'true'
+
+      - name: Run the page against the real server
+        run: RUN_E2E=1 ./run-tests.sh
+
+      - name: Upload the server log
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: e2e-server-log
+          path: tmp/e2e-server.log
+          if-no-files-found: ignore
+          retention-days: 14
