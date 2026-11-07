@@ -811,6 +811,56 @@ button.watch-placeholder:hover {
   max-width: 820px;
 }
 
+/* ---------- phones (an S20 FE is 412 CSS px wide) ---------- */
+@media (width < 640px) {
+  /* Top bar: the name and the language on one line, the two pages below sharing the width. */
+  .site-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .brand {
+    grid-row: 1;
+    grid-column: 1;
+    padding: 6px 4px;
+  }
+
+  .language-picker {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .language-picker select {
+    max-width: 8.5em;
+  }
+
+  .site-nav {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    margin-left: 0;
+  }
+
+  .site-nav a {
+    flex: 1;
+  }
+
+  /* The four framing buttons: icon only, the name stays for screen readers and as the tooltip. */
+  .tools .button-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tools .icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

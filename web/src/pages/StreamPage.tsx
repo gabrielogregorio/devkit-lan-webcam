@@ -1,8 +1,10 @@
 import {
   Camera,
+  Crop,
   FlipHorizontal2,
   RotateCcw,
   RotateCw,
+  Scan,
   SlidersHorizontal,
   SwitchCamera,
   Users,
@@ -171,26 +173,37 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
           />
           <span className="zoom-value">{zoomLabel(view.zoom)}</span>
         </div>
-        <div className="row">
+        {/* On a phone these four show only their icon; the name stays for screen readers and as the tooltip. */}
+        <div className="row tools">
           <button
             type="button"
             id="mirrorBtn"
+            title={t('Mirror')}
             aria-pressed={view.mirror}
             className={view.mirror ? 'active' : undefined}
             onClick={() => applyView(toggleMirror(view))}>
             <FlipHorizontal2 className="icon" aria-hidden="true" />
-            {t('Mirror')}
+            <span className="button-text">{t('Mirror')}</span>
           </button>
-          <button type="button" id="rotBtn" onClick={() => applyView(cycleRotation(view))}>
+          <button type="button" id="rotBtn" title={t('Rotate 90°')} onClick={() => applyView(cycleRotation(view))}>
             <RotateCw className="icon" aria-hidden="true" />
-            {t('Rotate 90°')}
+            <span className="button-text">{t('Rotate 90°')}</span>
           </button>
-          <button type="button" id="fitBtn" onClick={() => applyView(toggleFit(view))}>
-            {fitButtonLabel(t, view.fit)}
+          <button
+            type="button"
+            id="fitBtn"
+            title={fitButtonLabel(t, view.fit)}
+            onClick={() => applyView(toggleFit(view))}>
+            {view.fit === 'cover' ? (
+              <Crop className="icon" aria-hidden="true" />
+            ) : (
+              <Scan className="icon" aria-hidden="true" />
+            )}
+            <span className="button-text">{fitButtonLabel(t, view.fit)}</span>
           </button>
-          <button type="button" id="resetBtn" onClick={() => applyView(resetView())}>
+          <button type="button" id="resetBtn" title={t('Reset')} onClick={() => applyView(resetView())}>
             <RotateCcw className="icon" aria-hidden="true" />
-            {t('Reset')}
+            <span className="button-text">{t('Reset')}</span>
           </button>
         </div>
         <div className="row">
