@@ -15,7 +15,7 @@ export function WatchPage(): ReactNode {
   const approved = session.phase === 'open' && status?.access === 'approved' && status.camera;
   const { fps, frameUrl } = useWatchStream(store, approved === true);
   const phase = watchPhase(session.phase, status, frameUrl !== null);
-  const messages = watchMessages(t, phase, status?.code ?? null, fps);
+  const messages = watchMessages(t, phase, fps);
 
   // Asking (or asking again after a denial) works from the button and from the message on the picture.
   const ask = phase === 'not-requested' || phase === 'denied' ? () => store.requestToWatch(phase === 'denied') : null;

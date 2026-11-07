@@ -19,17 +19,18 @@ describe('RequestList', () => {
     expect(screen.getByText('Nobody asked to watch yet. Other devices ask on the Watch page.')).toBeInTheDocument();
   });
 
-  it('shows the code, IP and device, and approves or denies a pending request', async () => {
+  it('shows the IP and device, no code, and approves or denies a pending request', async () => {
     const user = userEvent.setup();
     const onDecide = vi.fn();
     render(<RequestList requests={[REQUEST]} onDecide={onDecide} />);
 
     expect(screen.getByRole('list', { name: 'Watch requests' })).toHaveTextContent(
-      'ab12-cd34192.168.0.20 · Chrome · Linux · waiting for you',
+      '192.168.0.20Chrome · Linux · waiting for you',
     );
+    expect(screen.queryByText(/ab12/)).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Approve ab12-cd34' }));
-    await user.click(screen.getByRole('button', { name: 'Deny ab12-cd34' }));
+    await user.click(screen.getByRole('button', { name: 'Approve 192.168.0.20 · Chrome · Linux' }));
+    await user.click(screen.getByRole('button', { name: 'Deny 192.168.0.20 · Chrome · Linux' }));
 
     expect(onDecide).toHaveBeenNthCalledWith(1, REQUEST.id, 'approve');
     expect(onDecide).toHaveBeenNthCalledWith(2, REQUEST.id, 'deny');
@@ -41,9 +42,9 @@ describe('RequestList', () => {
     const { rerender } = render(<RequestList requests={[{ ...REQUEST, state: 'approved' }]} onDecide={onDecide} />);
 
     expect(screen.getByText(/· watching$/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Approve ab12-cd34' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Approve 192.168.0.20 · Chrome · Linux' })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Revoke ab12-cd34' }));
+    await user.click(screen.getByRole('button', { name: 'Revoke 192.168.0.20 · Chrome · Linux' }));
 
     expect(onDecide).toHaveBeenCalledWith(REQUEST.id, 'revoke');
 
@@ -58,9 +59,9 @@ describe('RequestList', () => {
     render(<RequestList requests={[{ ...REQUEST, state: 'denied' }]} onDecide={onDecide} />);
 
     expect(screen.getByText(/· denied$/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Deny ab12-cd34' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Deny 192.168.0.20 · Chrome · Linux' })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Approve ab12-cd34' }));
+    await user.click(screen.getByRole('button', { name: 'Approve 192.168.0.20 · Chrome · Linux' }));
 
     expect(onDecide).toHaveBeenCalledWith(REQUEST.id, 'approve');
   });

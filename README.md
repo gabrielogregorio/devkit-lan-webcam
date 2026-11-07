@@ -271,10 +271,10 @@ Issues use forms (`bug_report.yml`, `feature_request.yml`); PRs start from `pull
    **with the feed already on**, and pick **"LAN Webcam"**.
 4. **Optional, watch on other devices:** another device opens `https://<pc-ip>:9443/watch` or, over
    plain HTTP with no certificate warning, `http://<pc-ip>:9080/watch`; it pairs with the code from
-   the top bar icon (or `./run.sh code`) and taps **Ask to watch**. Its page
-   shows a code like `ab12-cd34`. On the camera device, **Who may watch** lists the request with
-   the same code, the IP and the device: **Approve** it. Compare the codes before approving: another
-   device on the network may ask too, and only the one you approve gets the picture. **Deny** and
+   the top bar icon (or `./run.sh code`) and taps **Ask to watch** (or the message on the picture).
+   On the camera device, **Who may watch** lists the request with its IP and device: **Approve** it.
+   Check the IP before approving: another device on the network may ask too, and only the one you
+   approve gets the picture. Two tabs of the same browser on the same machine look alike in the list. **Deny** and
    **Revoke** stop it at once. Approvals last while the camera streams; a tab that reloads keeps its
    key and its approval.
 5. **Optional, quality:** on the Stream page, **Stream quality** sets resolution, frames per second and

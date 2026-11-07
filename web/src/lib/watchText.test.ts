@@ -43,7 +43,7 @@ describe('watch texts', () => {
       'pending',
       {
         placeholder: 'Waiting for the camera device to approve.',
-        status: 'Request sent - code ab12-cd34',
+        status: 'Request sent',
         kind: 'warn',
       },
     ],
@@ -54,13 +54,12 @@ describe('watch texts', () => {
     ],
     ['waiting', { placeholder: null, status: 'Approved, waiting for frames…', kind: 'ok' }],
   ] as const)('phase %s', (phase, expected) => {
-    expect(watchMessages(t, phase, 'ab12cd34', null)).toEqual(expected);
+    expect(watchMessages(t, phase, null)).toEqual(expected);
   });
 
   it('shows "?" without a code and the frame rate once measured', () => {
-    expect(watchMessages(t, 'pending', null, null).status).toBe('Request sent - code ?');
-    expect(watchMessages(t, 'live', null, null).status).toBe('Live');
-    expect(watchMessages(t, 'live', null, 24)).toEqual({ placeholder: null, status: 'Live - 24 fps', kind: 'ok' });
+    expect(watchMessages(t, 'live', null).status).toBe('Live');
+    expect(watchMessages(t, 'live', 24)).toEqual({ placeholder: null, status: 'Live - 24 fps', kind: 'ok' });
   });
 
   it('measures frames per second over the elapsed time', () => {

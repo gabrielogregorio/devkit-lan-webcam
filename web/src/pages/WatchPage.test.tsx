@@ -43,7 +43,7 @@ describe('WatchPage', () => {
 
     act(() => server.pushJson(status('pending')));
 
-    expect(screen.getByRole('status')).toHaveTextContent('Request sent - code ab12-cd34');
+    expect(screen.getByRole('status')).toHaveTextContent('Request sent');
   });
 
   it('asks to watch from the message on the picture too, without going full screen', async () => {

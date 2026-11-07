@@ -14,8 +14,6 @@ const LAUNCH_ARGS = ['--use-fake-device-for-media-stream', '--use-fake-ui-for-me
 const STATUS_TIMEOUT_MS = 8000;
 const FRAME_COLLECTION_MS = 800;
 const CAMERA_SWITCH_CLICKS = 6;
-// The watch status shows the code of the request while it waits: "Request sent - code ab12-cd34".
-const REQUEST_CODE = /code ([0-9a-f]{4}-[0-9a-f]{4})/;
 const WIRE_WATCH_MS = 1500;
 const MIN_ENCRYPTED_FRAMES = 3;
 // The only messages that may cross in the clear: pairing and session handshakes, made of public values.
@@ -173,24 +171,25 @@ test('over plain HTTP, only the request the camera approves gets the picture', a
       'the laptop really is on plain HTTP, without the browser crypto API',
     );
     await laptop.getByRole('button', { name: 'Ask to watch', exact: true }).click();
-    await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).waitFor({ timeout: STATUS_TIMEOUT_MS });
-    const laptopCode = (await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).textContent()).match(
-      REQUEST_CODE,
-    )[1];
+    await laptop.locator('#watchStatus', { hasText: 'Request sent' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
 
     const intruder = await openDevice();
     await pairAndOpen(intruder, `${HTTP_URL}/watch`);
     await intruder.getByRole('button', { name: 'Ask to watch', exact: true }).click();
-    await intruder.locator('#watchStatus', { hasText: REQUEST_CODE }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+    await intruder.locator('#watchStatus', { hasText: 'Request sent' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
 
-    await camera.getByRole('button', { name: `Approve ${laptopCode}` }).click();
+    // Both ask from the same address and browser, so they look alike: the list keeps the order they asked in.
+    await camera
+      .getByRole('button', { name: /^Approve / })
+      .first()
+      .click();
 
     await laptop.getByRole('img', { name: 'Live camera' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
     await intruder.waitForTimeout(FRAME_COLLECTION_MS);
     assert.equal(await intruder.getByRole('img', { name: 'Live camera' }).count(), 0, 'the other request sees nothing');
     assert.match(await intruder.locator('#watchStatus').textContent(), /Request sent/);
 
-    await camera.getByRole('button', { name: `Revoke ${laptopCode}` }).click();
+    await camera.getByRole('button', { name: /^Revoke / }).click();
     await laptop.locator('#watchStatus', { hasText: 'Denied' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
     assert.equal(await laptop.getByRole('img', { name: 'Live camera' }).count(), 0, 'revoked: the picture is gone');
 
@@ -209,11 +208,8 @@ test('an eavesdropper on plain HTTP records the whole watch session and finds no
       const laptop = await openDevice();
       await pairAndOpen(laptop, `${tap.url}/watch`);
       await laptop.getByRole('button', { name: 'Ask to watch', exact: true }).click();
-      await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).waitFor({ timeout: STATUS_TIMEOUT_MS });
-      const laptopCode = (await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).textContent()).match(
-        REQUEST_CODE,
-      )[1];
-      await camera.getByRole('button', { name: `Approve ${laptopCode}` }).click();
+      await laptop.locator('#watchStatus', { hasText: 'Request sent' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+      await camera.getByRole('button', { name: /^Approve / }).click();
       await laptop.getByRole('img', { name: 'Live camera' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
       await laptop.waitForTimeout(WIRE_WATCH_MS);
       const stored = await laptop.evaluate(() => localStorage.getItem('devkit-lan-webcam.device'));

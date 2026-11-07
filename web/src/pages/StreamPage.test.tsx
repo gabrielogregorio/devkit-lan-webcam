@@ -69,7 +69,7 @@ describe('StreamPage', () => {
       server.pushJson({ type: 'requests', requests: [REQUEST] });
     });
 
-    await user.click(screen.getByRole('button', { name: 'Approve ab12-cd34' }));
+    await user.click(screen.getByRole('button', { name: /^Approve 192.168.0.20/ }));
 
     expect(server.received().at(-1)?.json).toEqual({ type: 'decide', id: REQUEST.id, decision: 'approve' });
   });

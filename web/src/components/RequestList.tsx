@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { deviceLabel, DEVICE_ICONS } from '@/lib/deviceLabel';
 import { t } from '@/lib/i18n';
 import type { Decision, WatchRequest } from '@/lib/protocol';
-import { formatRequestCode } from '@/lib/requestCode';
 
 interface RequestListProps {
   requests: readonly WatchRequest[];
@@ -28,7 +27,8 @@ export function RequestList({ requests, onDecide }: Readonly<RequestListProps>):
       {requests.map((request) => {
         const label = deviceLabel(request.device);
         const DeviceIcon = DEVICE_ICONS[label.kind];
-        const code = formatRequestCode(request.code);
+        // Who asked, as the camera sees it: the address and the device.
+        const who = `${request.ip} · ${label.name}`;
 
         return (
           <li key={request.id} className={`request state-${request.state}`}>
@@ -36,9 +36,9 @@ export function RequestList({ requests, onDecide }: Readonly<RequestListProps>):
               <DeviceIcon className="icon" />
             </span>
             <span className="node-text">
-              <strong>{code}</strong>
+              <strong>{request.ip}</strong>
               <span>
-                {request.ip} · {label.name} · {stateText(request)}
+                {label.name} · {stateText(request)}
               </span>
             </span>
             <span className="request-actions">
@@ -46,7 +46,7 @@ export function RequestList({ requests, onDecide }: Readonly<RequestListProps>):
                 <button
                   type="button"
                   className="primary"
-                  aria-label={t('Approve {code}', { code })}
+                  aria-label={t('Approve {who}', { who })}
                   onClick={() => onDecide(request.id, 'approve')}>
                   {t('Approve')}
                 </button>
@@ -54,7 +54,7 @@ export function RequestList({ requests, onDecide }: Readonly<RequestListProps>):
               {request.state === 'pending' && (
                 <button
                   type="button"
-                  aria-label={t('Deny {code}', { code })}
+                  aria-label={t('Deny {who}', { who })}
                   onClick={() => onDecide(request.id, 'deny')}>
                   {t('Deny')}
                 </button>
@@ -62,7 +62,7 @@ export function RequestList({ requests, onDecide }: Readonly<RequestListProps>):
               {request.state === 'approved' && (
                 <button
                   type="button"
-                  aria-label={t('Revoke {code}', { code })}
+                  aria-label={t('Revoke {who}', { who })}
                   onClick={() => onDecide(request.id, 'revoke')}>
                   {t('Revoke')}
                 </button>

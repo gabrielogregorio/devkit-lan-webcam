@@ -1,6 +1,5 @@
 import type { Translate } from '@/lib/i18n';
 import type { ViewerStatus } from '@/lib/protocol';
-import { formatRequestCode } from '@/lib/requestCode';
 import type { ConnectionPhase } from '@/lib/secureConnection';
 import type { StatusKind } from '@/lib/streamText';
 
@@ -35,13 +34,7 @@ export function watchPhase(connection: ConnectionPhase, status: ViewerStatus | n
   return hasFrame ? 'live' : 'waiting';
 }
 
-export function watchMessages(
-  t: Translate,
-  phase: WatchPhase,
-  requestCode: string | null,
-  framesPerSecond: number | null,
-): WatchMessages {
-  const code = requestCode ? formatRequestCode(requestCode) : '?';
+export function watchMessages(t: Translate, phase: WatchPhase, framesPerSecond: number | null): WatchMessages {
   switch (phase) {
     case 'connecting':
       return { placeholder: t('Connecting…'), status: t('Connecting…'), kind: '' };
@@ -60,7 +53,7 @@ export function watchMessages(
     case 'pending':
       return {
         placeholder: t('Waiting for the camera device to approve.'),
-        status: t('Request sent - code {code}', { code }),
+        status: t('Request sent'),
         kind: 'warn',
       };
     case 'denied':
