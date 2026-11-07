@@ -65,7 +65,7 @@ with camera access is enough.
   every 5 minutes); after that, everything between the browser and the PC is encrypted, even over
   plain HTTP. The code never travels over the network. See [Security](#security).
 - **The camera decides who watches:** each Watch tab asks with its own random key; the Stream page
-  lists every request (code, IP, device) and approves, denies or revokes each one. Only approved
+  lists every request (IP and device) and approves, denies or revokes each one with one button. Only approved
   requests get frames.
 - **Stream quality on the camera device:** resolution (360p, 540p, 720p), frames per second (10 to 30)
   and JPEG quality, with the measured size per frame.
@@ -77,6 +77,10 @@ with camera access is enough.
   Pick one in the menu at the top of every page: it switches at once, without reloading (a camera that is
   streaming keeps going), and this browser remembers it. Without a choice the page follows the browser
   language, else English. Force one with `?lang=` (`en`, `pt-BR`, `es`, `fr`, `zh`, `hi`, `ja`).
+- **Y2K desktop look:** every part of the page is a retro window (coloured title bar, three little
+  buttons, thick outline, hard shadow) on a pastel grid wallpaper, with mono type, SVG icons and a
+  matching scrollbar. On a phone the top bar packs into two lines and the framing buttons show only
+  their icon. See [Look and feel](#look-and-feel).
 
 Built and tested on Ubuntu 24.04.
 
@@ -189,7 +193,7 @@ uv lock && uv export --frozen --no-dev --no-emit-project -o requirements.txt
 | **Break tests bite** | `tests/backend/plugin_without_encryption.py` | the break tests run again with the encryption turned off and must fail, so they cannot pass by accident |
 | **Crypto vectors** | `tests/backend/crypto_vectors.py` → `web/src/lib/crypto/vectors.json` | fixed-input outputs of the server's SPAKE2, sealed credential and session handshake; the browser tests must produce the same bytes |
 | **Web lint** | `eslint.config.mjs`, `tsconfig.json`, `.prettierrc` | ESLint (typescript-eslint with types, react, react-hooks, jsx-a11y, sonarjs), strict TypeScript, Prettier |
-| **Web unit** | `web/src/**/*.test.{ts,tsx}` (Vitest + Testing Library) | 100% coverage gate: the browser crypto against the server vectors, the encrypted connection and the session store against a fake server doing a real handshake, the pairing client, storage, framing math, gestures, routes, server messages, device labels, quality settings, every page text, the i18n catalogs (every `t('…')` has its line in each of the 6 translations with the same `{placeholders}`, none unused), the language menu, and the pages: pairing form, network panel, request list, quality controls, navigation, the Watch page states |
+| **Web unit** | `web/src/**/*.test.{ts,tsx}` (Vitest + Testing Library) | 100% coverage gate: the browser crypto against the server vectors, the encrypted connection and the session store against a fake server doing a real handshake, the pairing client, storage, framing math, gestures, routes, server messages, device labels, quality settings, every page text, the i18n catalogs (every `t('…')` has its line in each of the 6 translations with the same `{placeholders}`, none unused), the language menu and the live language switch, the retro window, two-finger twist and its snap to a quarter turn, and the pages: pairing form, network panel (one line per machine, the PC page folded into the PC line, never the pairing code), request list, quality controls, navigation, the Watch page states and asking from the message on the picture |
 | **Launcher** | `tests/launcher/test_launcher.sh` | `run.sh` in a sandbox with stubs: status, missing device, `exclusive_caps` warning, single instance, stop, usage, builds the web app when it is missing, says how to install Node when it cannot |
 | **E2E** | `tests/e2e/` (Playwright) | the real `server.py` serving the real build, with its own config folder and ffmpeg swapped for `cat`; Chromium with a fake camera, every device in its own browser context pairing with the code from `pairing.py`: a wrong code does not pair, preview and camera switching, encrypted frames decrypted on the server at the chosen resolution, navigation, and over **plain HTTP on the LAN address** (no `crypto.subtle`) two devices ask to watch and only the one the camera approves gets the picture, until it is revoked; a whole watch session on plain HTTP recorded by a relay (`wire-tap.mjs`) carries encrypted frames and no JPEG, app message or device secret |
 | **Device** | `tests/backend/test_device_integration.py` | opt-in: `/dev/video10` exists and is readable and writable |
@@ -312,6 +316,24 @@ Issues use forms (`bug_report.yml`, `feature_request.yml`); PRs start from `pull
   between pages without reloading) with `Cache-Control: no-store`, so a new build always arrives. The
   hashed files in `/assets/` are cached for a year, since a new build gives them new names. Nothing
   outside `web/dist` is reachable; without a build the pages answer 503 with what to run.
+- <a id="look-and-feel"></a>**Look and feel.** The UI was redone as a Y2K / late-90s desktop, inspired
+  by retro computer interface illustrations such as
+  [this one](https://img.magnific.com/vetores-gratis/interface-de-tela-de-computador-retro-com-navegador-de-notificacao-pop-up-de-pasta-do-windows-e-quadros-de-mensagem_88138-1809.jpg)
+  (pop-up windows, message boxes, loading bars, checkerboard, sparkles). Nothing is copied from it:
+  the look is plain CSS in `web/src/styles.css` (colour tokens on `:root`) and one component,
+  `RetroWindow`, that every page and panel uses; the icons are
+  [Lucide](https://lucide.dev) (ISC) through `lucide-react`, only the ones in use end up in the
+  build. The details that carry the style:
+  - windows with a coloured title bar (violet, teal, pink or blue by role), three square buttons and a
+    navy outline with a hard shadow; the title is the page heading when the window is the page;
+  - pink primary buttons in capitals, periwinkle secondary ones, both pressing in on click;
+  - range inputs drawn as a segmented "Loading…" bar with a square pink thumb;
+  - a pink and purple checkerboard on the picture until a frame arrives, with the message in a small
+    window (on the Watch page that message is also the button that asks to watch);
+  - the pairing result as a message box with a round ✕ or ✓ icon;
+  - a pastel cyan-to-lilac grid wallpaper with sparkles, and a scrollbar with a pink thumb and square
+    teal ends;
+  - system mono fonts only, so a phone without internet looks the same.
 - The preview on the device **is the canvas itself**; the camera opens in a hidden `<video>` that is
   the drawing source.
 - A stalled network does not pile up frames: the page keeps at most one frame in flight and skips
@@ -372,8 +394,9 @@ model, wire contents and every break test: **[docs/security.md](docs/security.md
 | `access.py` | sessions, who streams, watch requests and approvals, the relay and the network panel |
 | `tray_icon.py` | top bar icon: turns the server on and off, QR code, pairing code, change code, unpair all; `--install` starts it at every login |
 | `web/index.html`, `web/src/main.tsx`, `web/src/App.tsx` | the web app: header with the links, and the page for the address |
-| `web/src/pages/` | `HomePage`, `StreamPage` (preview, controls, camera choice, quality, who may watch) and `WatchPage` (ask to watch, relayed frames, full screen) |
-| `web/src/components/` | `PairingForm`, `NetworkPanel`, `RequestList`, `QualityControls`, `NavLink` |
+| `web/src/pages/` | `StreamPage` (preview, controls, camera choice, quality, who may watch beside the network) and `WatchPage` (ask to watch, relayed frames with the status and the network under them, full screen); the home page is the network panel itself |
+| `web/src/components/` | `RetroWindow` (the Y2K window every part uses), `LanguagePicker`, `PairingForm`, `NetworkPanel` (one line per machine), `RequestList`, `QualityControls`, `NavLink` |
+| `web/src/styles.css` | the whole look: colour tokens, windows, buttons, range bars, checkerboard, wallpaper, scrollbar and the phone layout |
 | `web/src/lib/crypto/` | the browser's SPAKE2, session handshake and message encryption, with the server vectors |
 | `web/src/lib/secureConnection.ts`, `sessionStore.ts`, `SessionContext.tsx` | the page's one encrypted session, reconnecting on its own, shared by every page |
 | `web/src/lib/pairingClient.ts`, `credentialStore.ts`, `storage.ts` | pairing over `/ws/pair`, the device credential and the tab's watch key, prefixed browser storage |
@@ -383,7 +406,7 @@ model, wire contents and every break test: **[docs/security.md](docs/security.md
 | `web/src/lib/view.ts`, `gestures.ts` | pure framing math (zoom/pan/rotation/fit) and drag/pinch/twist tracking |
 | `web/src/lib/router.ts`, `components/NavLink.tsx` | the three routes and the links that move between them without reloading |
 | `web/src/lib/protocol.ts` | the only reader of the server's JSON messages |
-| `web/src/lib/i18n.ts`, `locales/`, `streamText.ts`, `watchText.ts` | language detection and switching, one catalog per language and every status text as a pure function |
+| `web/src/lib/i18n.ts`, `lib/locales/`, `streamText.ts`, `watchText.ts` | language detection and switching, one catalog per language and every status text as a pure function |
 | `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.nvmrc` | Node 24, pnpm pinned with its hash, locked packages, 3-day wait for new versions, install scripts blocked |
 | `vite.config.mts`, `tsconfig.json`, `eslint.config.mjs`, `.prettierrc` | build, unit tests and coverage gate, strict TypeScript, lint, format |
 | `setup.sh` | first install (apt + venv + web app build + certificate + module) |
@@ -404,7 +427,8 @@ language is one catalog file plus one entry in `LANGUAGES` and `CATALOGS`. Termi
 
 ## Dependencies
 
-**Web app:** `package.json` declares, `pnpm-lock.yaml` locks with hashes. `pnpm-workspace.yaml` refuses
+**Web app:** `package.json` declares (runtime: `react`, `react-dom`, the `@noble` crypto libraries and
+`lucide-react` for the icons), `pnpm-lock.yaml` locks with hashes. `pnpm-workspace.yaml` refuses
 versions published less than 3 days ago (`minimumReleaseAge`) and blocks install scripts outside
 `allowBuilds`. Always install with `corepack pnpm install --frozen-lockfile`; after changing
 `package.json`, run `corepack pnpm install` and commit the lock.
