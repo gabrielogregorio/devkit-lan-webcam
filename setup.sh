@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs the dependencies, loads the virtual webcam and generates the HTTPS certificate.
+# Installs the dependencies, builds the web app, loads the virtual webcam and generates the HTTPS certificate.
 set -e
 cd "$(dirname "$0")"
 
@@ -11,6 +11,22 @@ echo ">> Creating the venv and installing the locked dependencies…"
 python3 -m venv .venv
 .venv/bin/pip install --quiet --upgrade pip
 .venv/bin/pip install --quiet -r requirements.txt
+
+echo ">> Building the web app (Node 24 + pnpm)…"
+if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+  set +e
+  # shellcheck disable=SC1091
+  . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+  nvm install 24 && nvm use 24
+  set -e
+fi
+if command -v corepack >/dev/null 2>&1; then
+  corepack pnpm install --frozen-lockfile
+  corepack pnpm run build
+else
+  echo "   Node 24 not found: install nvm (https://github.com/nvm-sh/nvm), then run ./setup.sh again."
+  echo "   ./run.sh also builds the web app on its first start once Node 24 is there."
+fi
 
 echo ">> Loading the virtual webcam on /dev/video10…"
 sudo modprobe -r v4l2loopback 2>/dev/null || true
