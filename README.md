@@ -221,10 +221,13 @@ with the version as a comment, so a moved or hijacked tag cannot change what run
 
 The rest is pinned too: runners on `ubuntu-24.04` (not `ubuntu-latest`), Node 24 from `.nvmrc`, pnpm
 with its hash in `packageManager`, npm packages from `pnpm-lock.yaml` (Playwright included) and Python
-packages from `uv.lock` (through `requirements-dev.txt`, ruff included).
+packages from `uv.lock` (through `requirements-dev.txt`, ruff included), installed with
+`--require-hashes` and without upgrading pip first (that would fetch the newest pip, unhashed).
+Every checkout uses `persist-credentials: false`, so no token stays in `.git/config` for later steps;
+the tag checks ask the GitHub API instead of `git ls-remote`.
 `check-quality.yml` fails if a `uses:` is not a 40-character hash (local `./` actions excepted).
-Dependabot opens monthly PRs for the actions (hash and comment together) and the npm packages, both
-waiting 3 days after a release. To pin one by hand:
+Dependabot opens monthly PRs for the actions (hash and comment together), the npm packages and the
+Python packages (`uv.lock`), all waiting 3 days after a release. To pin one by hand:
 
 ```bash
 git ls-remote --tags https://github.com/actions/setup-node.git 'v7.1.0^{}' 'v7.1.0'   # the ^{} line, when present, is the commit

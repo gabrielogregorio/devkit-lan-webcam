@@ -17,12 +17,12 @@ runs:
         corepack enable
         pnpm install --frozen-lockfile
 
-    - name: Python venv (system python3, locked versions)
+    - name: Python venv (system python3, locked versions and hashes)
       shell: bash
       run: |
         python3 -m venv .venv
-        .venv/bin/pip install --quiet --upgrade pip
-        .venv/bin/pip install --quiet -r requirements-dev.txt
+        # No pip upgrade: that would fetch whatever pip is newest, without a hash.
+        .venv/bin/pip install --quiet --require-hashes -r requirements-dev.txt
         .venv/bin/python --version
         node --version
 
