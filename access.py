@@ -114,12 +114,14 @@ class AccessRequest:
 
 @dataclass
 class NetworkInfo:
-    """What the panel needs that does not change per session: this PC, the router and the pairing code."""
+    """What the panel needs that does not change per session: this PC and the router.
+
+    Never the pairing code: every paired page shows the panel, and a code on a screen (or a shared screen in a
+    call) would let anyone nearby pair. The code lives only in the top bar icon and in ./run.sh code.
+    """
 
     server_ip: str
     router_ip: str | None
-    pairing_code: str
-    pairing_seconds_left: int
 
 
 @dataclass
@@ -168,7 +170,6 @@ class Broadcast:
             "router": info.router_ip,
             "camera": {"ip": camera.ip, "device": camera.device} if camera else None,
             "peers": peers,
-            "pairing": {"code": info.pairing_code, "secondsLeft": info.pairing_seconds_left},
         }
 
     def _role(self, session: Session, access_request: AccessRequest | None) -> str:

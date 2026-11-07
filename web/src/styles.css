@@ -835,14 +835,6 @@ input[type='range']::-moz-range-thumb {
   max-width: 820px;
 }
 
-.pairing-code {
-  padding: 8px;
-  font-weight: 700;
-  color: var(--ink);
-  border: 2px dashed var(--ink);
-  background: var(--cream);
-}
-
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

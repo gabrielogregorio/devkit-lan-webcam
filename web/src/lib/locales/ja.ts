@@ -115,6 +115,4 @@ export const JA: Readonly<Record<string, string>> = {
   denied: '拒否',
   'page open': 'ページを開いています',
   you: 'あなた',
-  'Code to pair another device: {code} (changes in {time})':
-    '別の端末をペアリングするコード：{code}（{time} 後に変更）',
 };

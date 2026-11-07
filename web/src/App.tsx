@@ -60,7 +60,7 @@ function Shell(): ReactNode {
             {/* Always mounted: streaming from this device keeps going while you look at the other pages. */}
             <StreamPage hidden={route !== ROUTES.stream} />
             {route === ROUTES.watch && <WatchPage />}
-            {session.network && <NetworkPanel network={session.network} receivedAt={session.networkReceivedAt} />}
+            {session.network && <NetworkPanel network={session.network} />}
           </>
         )}
       </main>

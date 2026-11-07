@@ -4,12 +4,9 @@ import { RetroWindow } from '@/components/RetroWindow';
 import { deviceLabel, DEVICE_ICONS } from '@/lib/deviceLabel';
 import { t } from '@/lib/i18n';
 import type { NetworkPanelData, Peer, PeerRole } from '@/lib/protocol';
-import { formatPairingCode } from '@/lib/requestCode';
-import { clockLabel, useCountdown } from '@/lib/useCountdown';
 
 interface NetworkPanelProps {
   network: NetworkPanelData;
-  receivedAt: number;
 }
 
 // The most telling role first: it also picks the colour of the line.
@@ -98,8 +95,7 @@ function NetworkNode({ icon: Icon, ip, detail, role, you }: Readonly<NodeProps>)
 }
 
 // Who is where on the network, one line per machine: the router, this PC (with any page open on it), the rest.
-export function NetworkPanel({ network, receivedAt }: Readonly<NetworkPanelProps>): ReactNode {
-  const secondsLeft = useCountdown(network.pairing.secondsLeft, receivedAt);
+export function NetworkPanel({ network }: Readonly<NetworkPanelProps>): ReactNode {
   const machines = machinesOf(network.peers);
   const onThePc = machines.find((machine) => machine.ip === network.server);
   const others = machines.filter((machine) => machine !== onThePc);
@@ -128,12 +124,6 @@ export function NetworkPanel({ network, receivedAt }: Readonly<NetworkPanelProps
             />
           ))}
         </ul>
-        <p className="hint pairing-code">
-          {t('Code to pair another device: {code} (changes in {time})', {
-            code: formatPairingCode(network.pairing.code),
-            time: clockLabel(secondsLeft),
-          })}
-        </p>
       </RetroWindow>
     </aside>
   );

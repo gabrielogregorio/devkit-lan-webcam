@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { NetworkPanel } from '@/components/NetworkPanel';
 import { parseServerMessage, type NetworkPanelData } from '@/lib/protocol';
 import { NETWORK_MESSAGE } from '@/testRender';
@@ -13,17 +13,8 @@ function network(overrides: Record<string, unknown> = {}): NetworkPanelData {
 }
 
 describe('NetworkPanel', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(10_000);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it('lists the router, this PC and every other machine, one line each', () => {
-    render(<NetworkPanel network={network()} receivedAt={10_000} />);
+    render(<NetworkPanel network={network()} />);
     const panel = screen.getByRole('complementary', { name: 'Network' });
     const lines = within(panel).getAllByRole('listitem');
 
@@ -50,7 +41,6 @@ describe('NetworkPanel', () => {
             { ip: '192.168.0.10', device: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/141.0', role: 'watching', you: true },
           ],
         })}
-        receivedAt={10_000}
       />,
     );
     const lines = screen.getAllByRole('listitem');
@@ -62,7 +52,7 @@ describe('NetworkPanel', () => {
   });
 
   it('marks the PC as you when this page runs on it but is not listed yet', () => {
-    render(<NetworkPanel network={network({ you: '192.168.0.10', peers: [] })} receivedAt={10_000} />);
+    render(<NetworkPanel network={network({ you: '192.168.0.10', peers: [] })} />);
 
     expect(screen.getAllByRole('listitem')[1]).toHaveClass('you');
     expect(screen.getAllByText('you')).toHaveLength(1);
@@ -78,7 +68,6 @@ describe('NetworkPanel', () => {
             { ip: '10.0.0.2', device: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/141.0', role: 'watching', you: false },
           ],
         })}
-        receivedAt={10_000}
       />,
     );
     const lines = screen.getAllByRole('listitem');
@@ -93,26 +82,15 @@ describe('NetworkPanel', () => {
     ['denied', 'denied'],
     ['idle', 'page open'],
   ])('names the role %s', (role, text) => {
-    render(
-      <NetworkPanel
-        network={network({ peers: [{ ip: '10.0.0.2', device: '', role, you: false }] })}
-        receivedAt={10_000}
-      />,
-    );
+    render(<NetworkPanel network={network({ peers: [{ ip: '10.0.0.2', device: '', role, you: false }] })} />);
 
     expect(screen.getAllByRole('listitem')[2]).toHaveTextContent(`${text} · ?`);
   });
 
-  it('shows the pairing code and counts down, and "?" without a router', () => {
-    render(<NetworkPanel network={network({ router: null })} receivedAt={10_000} />);
+  it('shows "?" without a router and never the pairing code', () => {
+    render(<NetworkPanel network={network({ router: null })} />);
 
-    expect(screen.getByText('Code to pair another device: 123 456 (changes in 4:05)')).toBeInTheDocument();
     expect(screen.getByText('?')).toBeInTheDocument();
-
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
-
-    expect(screen.getByText('Code to pair another device: 123 456 (changes in 4:04)')).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Network' })).not.toHaveTextContent(/code/i);
   });
 });

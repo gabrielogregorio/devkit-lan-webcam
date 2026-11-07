@@ -18,7 +18,6 @@ export interface SessionSnapshot {
   status: ViewerStatus | null;
   network: NetworkPanelData | null;
   requests: WatchRequest[];
-  networkReceivedAt: number;
 }
 
 // What the camera needs from the session: send frames and control messages, and know when it is congested.
@@ -33,11 +32,10 @@ type Listener<Value> = (value: Value) => void;
 
 export interface SessionDependencies {
   createSocket?: SocketFactory;
-  now?: () => number;
   pair?: (code: string) => Promise<PairingOutcome>;
 }
 
-const EMPTY: SessionSnapshot = { phase: 'unpaired', status: null, network: null, requests: [], networkReceivedAt: 0 };
+const EMPTY: SessionSnapshot = { phase: 'unpaired', status: null, network: null, requests: [] };
 
 export class SessionStore implements SessionTransport {
   private snapshot: SessionSnapshot = EMPTY;
@@ -46,12 +44,10 @@ export class SessionStore implements SessionTransport {
   private readonly frameListeners = new Set<Listener<Uint8Array>>();
   private readonly messageListeners = new Set<Listener<ServerMessage>>();
   private readonly createSocket: SocketFactory | undefined;
-  private readonly now: () => number;
   private readonly pairFunction: (code: string) => Promise<PairingOutcome>;
 
   constructor(dependencies: SessionDependencies = {}) {
     this.createSocket = dependencies.createSocket;
-    this.now = dependencies.now ?? Date.now;
     this.pairFunction =
       dependencies.pair ??
       ((code) => pairWithCode(code, serverUrl('/ws/pair'), this.createSocket ?? ((url) => new WebSocket(url))));
@@ -171,7 +167,7 @@ export class SessionStore implements SessionTransport {
     if (message.type === 'status') {
       this.update({ ...this.snapshot, status: message.status });
     } else if (message.type === 'network') {
-      this.update({ ...this.snapshot, network: message.network, networkReceivedAt: this.now() });
+      this.update({ ...this.snapshot, network: message.network });
     } else if (message.type === 'requests') {
       this.update({ ...this.snapshot, requests: message.requests });
     }

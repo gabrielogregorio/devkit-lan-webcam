@@ -110,5 +110,4 @@ export const ZH: Readonly<Record<string, string>> = {
   denied: '已拒绝',
   'page open': '页面已打开',
   you: '你',
-  'Code to pair another device: {code} (changes in {time})': '配对其他设备的代码：{code}（{time} 后更换）',
 };

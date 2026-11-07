@@ -6,12 +6,10 @@ import { SessionStore, type SessionDependencies } from '@/lib/sessionStore';
 import { storageKey } from '@/lib/storage';
 import { FakeServer, FakeSocket, TEST_CREDENTIAL, fakeSocketFactory } from '@/testDoubles';
 
-export const NOW = 1_000_000;
-
 export function pairedStore(dependencies: SessionDependencies = {}): SessionStore {
   saveCredential(TEST_CREDENTIAL);
 
-  return new SessionStore({ createSocket: fakeSocketFactory, now: () => NOW, ...dependencies });
+  return new SessionStore({ createSocket: fakeSocketFactory, ...dependencies });
 }
 
 export interface Rendered extends RenderResult {
@@ -53,5 +51,4 @@ export const NETWORK_MESSAGE = {
       you: true,
     },
   ],
-  pairing: { code: '123456', secondsLeft: 245 },
 };

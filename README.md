@@ -48,14 +48,14 @@ with camera access is enough.
 > (`https://<pc-ip>:9443`); nothing goes through the internet, so it does not work from another
 > network or over mobile data. A guest Wi-Fi with client isolation also blocks it.
 
-- **Three linked pages** on `https://<pc-ip>:9443`, with **📷 Stream** and **👀 Watch** at the top of
+- **Three linked pages** on `https://<pc-ip>:9443`, with **Stream** and **Watch** at the top of
   every page:
 
   | Page | Address | What |
   |---|---|---|
   | Home | `/` | what the app does and a link to each page |
-  | 📷 Stream | `/stream` | streams this device's camera to the PC |
-  | 👀 Watch | `/watch` | shows live the camera another device is streaming |
+  | Stream | `/stream` | streams this device's camera to the PC |
+  | Watch | `/watch` | shows live the camera another device is streaming |
 
   Moving between pages does not stop the streaming of this device.
 - **Live controls on the Stream page:** zoom (slider or pinch), drag to move, mirror, rotate 90°, fit
@@ -68,8 +68,9 @@ with camera access is enough.
   requests get frames.
 - **Stream quality on the camera device:** resolution (360p, 540p, 720p), frames per second (10 to 30)
   and JPEG quality, with the measured size per frame.
-- **Network panel on every page:** the router, this PC, the camera, every open page with its role,
-  and which one is you.
+- **Network panel on every page:** one line per machine: the router, this PC (with any page open on
+  it), the camera and every other device with its role, and which one is you. Never the pairing code:
+  anyone looking at a screen, or at a screen shared in a call, could pair with it.
 - **The preview is the canvas that is sent:** what you see on the device is exactly what the PC gets.
 - **Language:** English, Brazilian Portuguese, Spanish, French, Chinese (simplified), Hindi and Japanese.
   Pick one in the menu at the top of every page: it switches at once, without reloading (a camera that is
@@ -263,15 +264,15 @@ Issues use forms (`bug_report.yml`, `feature_request.yml`); PRs start from `pull
 2. **On the camera device** (on the **same network** as the PC): open `https://<pc-ip>:9443` (or scan
    the QR code from the top bar icon) and accept the certificate warning. The first time, the page
    asks for the **pairing code**: type the 6 digits from the top bar icon (or `./run.sh code`). Then go
-   to **📷 Stream** (`/stream`). Pick the camera (**📷 Back** / **🤳 Front** or the dropdown): the preview shows up even
-   before streaming. Adjust zoom and position, then **Start streaming** (status 🟢). Hold a phone
+   to **Stream** (`/stream`). Pick the camera (**Back** / **Front** or the dropdown): the preview shows up even
+   before streaming. Adjust zoom and position, then **Start streaming** (status "Streaming"). Hold a phone
    **sideways (landscape)** to match the 16:9 webcam. Keep the page open and the screen on.
 3. **On the PC:** apps only look for cameras when they open, so close and reopen the target app
    **with the feed already on**, and pick **"LAN Webcam"**.
 4. **Optional, watch on other devices:** another device opens `https://<pc-ip>:9443/watch` or, over
-   plain HTTP with no certificate warning, `http://<pc-ip>:9080/watch`; it pairs with the code (the
-   network panel of a paired device also shows the current code) and taps **Ask to watch**. Its page
-   shows a code like `ab12-cd34`. On the camera device, **👀 Who may watch** lists the request with
+   plain HTTP with no certificate warning, `http://<pc-ip>:9080/watch`; it pairs with the code from
+   the top bar icon (or `./run.sh code`) and taps **Ask to watch**. Its page
+   shows a code like `ab12-cd34`. On the camera device, **Who may watch** lists the request with
    the same code, the IP and the device: **Approve** it. Compare the codes before approving: another
    device on the network may ask too, and only the one you approve gets the picture. **Deny** and
    **Revoke** stop it at once. Approvals last while the camera streams; a tab that reloads keeps its
@@ -354,8 +355,8 @@ model, wire contents and every break test: **[docs/security.md](docs/security.md
   Encryption protects against anyone who listens, not against a tampered page. The self-signed HTTPS
   has the same gap the moment you accept an unknown certificate. On a network you do not trust, use
   HTTPS and check the certificate.
-- **A paired device is trusted to ask:** it still needs the camera's approval to watch, but it can see
-  the current pairing code in the network panel.
+- **A paired device is trusted to ask:** it still needs the camera's approval to watch. It never gets
+  the pairing code: the server leaves it out of every message, so the code is only on the PC.
 - **The PC sees the frames:** it decrypts them to feed `/dev/video10`, by design.
 
 ## Project layout

@@ -27,7 +27,6 @@ export interface NetworkPanelData {
   router: string | null;
   camera: { ip: string; device: string } | null;
   peers: Peer[];
-  pairing: { code: string; secondsLeft: number };
 }
 
 export interface WatchRequest {
@@ -80,12 +79,7 @@ function parsePeer(value: unknown): Peer | null {
 function parseNetwork(message: Record<string, unknown>): NetworkPanelData | null {
   const you = text(message.you);
   const server = text(message.server);
-  const pairing = message.pairing;
-  if (you === null || server === null || !isRecord(pairing) || !Array.isArray(message.peers)) {
-    return null;
-  }
-  const code = text(pairing.code);
-  if (code === null || typeof pairing.secondsLeft !== 'number') {
+  if (you === null || server === null || !Array.isArray(message.peers)) {
     return null;
   }
   const camera = isRecord(message.camera)
@@ -99,7 +93,6 @@ function parseNetwork(message: Record<string, unknown>): NetworkPanelData | null
     router: text(message.router),
     camera,
     peers,
-    pairing: { code, secondsLeft: pairing.secondsLeft },
   };
 }
 

@@ -3,7 +3,6 @@ import { SessionStore } from '@/lib/sessionStore';
 import { storageKey } from '@/lib/storage';
 import { FakeServer, FakeSocket, TEST_CREDENTIAL, fakeSocketFactory } from '@/testDoubles';
 
-const NOW = 1_000;
 const NETWORK = {
   type: 'network',
   you: '192.168.0.20',
@@ -11,13 +10,12 @@ const NETWORK = {
   router: '192.168.0.1',
   camera: null,
   peers: [],
-  pairing: { code: '123456', secondsLeft: 200 },
 };
 
 function pairedStore(): SessionStore {
   saveCredential(TEST_CREDENTIAL);
 
-  return new SessionStore({ createSocket: fakeSocketFactory, now: () => NOW });
+  return new SessionStore({ createSocket: fakeSocketFactory });
 }
 
 describe('SessionStore', () => {
@@ -58,7 +56,6 @@ describe('SessionStore', () => {
     expect(snapshot.phase).toBe('open');
     expect(snapshot.status?.camera).toBe(true);
     expect(snapshot.network?.server).toBe('192.168.0.10');
-    expect(snapshot.networkReceivedAt).toBe(NOW);
     expect(snapshot.requests).toEqual([]);
     expect(messages).toHaveBeenCalledTimes(4);
     expect(store.isOpen).toBe(true);

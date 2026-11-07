@@ -13,7 +13,6 @@ const NETWORK = {
     { ip: 7, device: 'UA', role: 'idle', you: false },
     { ip: '192.168.0.9', device: null, role: 'idle', you: false },
   ],
-  pairing: { code: '123456', secondsLeft: 99 },
 };
 const REQUEST = {
   id: 'f'.repeat(64),
@@ -40,7 +39,6 @@ describe('server messages', () => {
         router: null,
         camera: { ip: '192.168.0.30', device: 'Phone' },
         peers: [PEER],
-        pairing: { code: '123456', secondsLeft: 99 },
       },
     });
   });
@@ -83,8 +81,6 @@ describe('server messages', () => {
     ['an unknown type', { type: 'other' }],
     ['a status with a wrong field', { type: 'status', camera: 'yes', streaming: false, access: 'none' }],
     ['a status with an unknown access', { type: 'status', camera: true, streaming: false, access: 'maybe' }],
-    ['a network without pairing', { ...NETWORK, pairing: null }],
-    ['a network with a text countdown', { ...NETWORK, pairing: { code: '1', secondsLeft: '9' } }],
     ['a network without peers', { ...NETWORK, peers: null }],
     ['requests that are not a list', { type: 'requests', requests: {} }],
   ])('ignores %s', (_description, message) => {

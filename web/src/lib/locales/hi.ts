@@ -114,6 +114,4 @@ export const HI: Readonly<Record<string, string>> = {
   denied: 'अस्वीकार',
   'page open': 'पेज खुला',
   you: 'आप',
-  'Code to pair another device: {code} (changes in {time})':
-    'दूसरा डिवाइस पेयर करने का कोड: {code} ({time} में बदलेगा)',
 };

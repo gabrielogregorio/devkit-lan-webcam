@@ -11,7 +11,6 @@ import socket
 import ssl
 import subprocess
 import threading
-from collections.abc import AsyncIterator
 from typing import IO
 
 from aiohttp import WSMsgType, web
@@ -49,7 +48,6 @@ ASSET_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 FFMPEG_SHUTDOWN_TIMEOUT_SECONDS: int = 3
 WEBSOCKET_MAX_MESSAGE_BYTES: int = 16 * 1024 * 1024
 PAIRING_MAX_MESSAGE_BYTES: int = 4 * 1024
-CODE_CHECK_SECONDS: int = 5
 
 # Without no-store the browser keeps an old index.html after a new build, pointing at assets that no longer exist.
 NO_CACHE_HEADERS: dict[str, str] = {
@@ -175,8 +173,7 @@ async def asset(request: web.Request) -> web.FileResponse:
 
 
 def network_info(app: web.Application) -> NetworkInfo:
-    code, seconds_left = pairing.current_code(pairing.load_seed())
-    return NetworkInfo(app[SERVER_IP_KEY], router_ip(), code, seconds_left)
+    return NetworkInfo(app[SERVER_IP_KEY], router_ip())
 
 
 async def announce_all(app: web.Application) -> None:
@@ -299,31 +296,12 @@ async def pair_handler(request: web.Request) -> web.WebSocketResponse:
     return websocket
 
 
-async def watch_pairing_code(app: web.Application) -> None:
-    """Pushes the panel again when the code turns or the icon changes it, so pages show the code on screen."""
-    last_code = None
-    while True:
-        code, _seconds_left = pairing.current_code(pairing.load_seed())
-        if code != last_code:
-            if last_code is not None:
-                await announce_all(app)
-            last_code = code
-        await asyncio.sleep(CODE_CHECK_SECONDS)
-
-
-async def start_background(app: web.Application) -> AsyncIterator[None]:
-    task = asyncio.create_task(watch_pairing_code(app))
-    yield
-    task.cancel()
-
-
 def build_app(dist_dir: str = DIST, server_ip: str | None = None) -> web.Application:
     app = web.Application()
     app[BROADCAST_KEY] = Broadcast()
     app[PAIRING_GUARD_KEY] = PairingGuard()
     app[DIST_KEY] = dist_dir
     app[SERVER_IP_KEY] = server_ip or local_ip_address()
-    app.cleanup_ctx.append(start_background)
     for path in PAGE_ROUTES:
         app.router.add_get(path, app_page)
     app.router.add_get("/assets/{name}", asset)

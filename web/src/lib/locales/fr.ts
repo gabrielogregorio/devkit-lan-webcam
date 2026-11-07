@@ -118,6 +118,4 @@ export const FR: Readonly<Record<string, string>> = {
   denied: 'refusé',
   'page open': 'page ouverte',
   you: 'vous',
-  'Code to pair another device: {code} (changes in {time})':
-    'Code pour associer un autre appareil : {code} (change dans {time})',
 };

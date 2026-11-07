@@ -339,8 +339,7 @@ async def test_every_page_gets_the_network_panel(client: TestClient, credential:
     assert panel["camera"]["ip"] == LOCAL_IP
     assert sorted(peer["role"] for peer in panel["peers"]) == ["camera", "watching"]
     assert [peer["you"] for peer in panel["peers"] if peer["role"] == "watching"] == [True]
-    assert len(panel["pairing"]["code"]) == 6
-    assert 0 < panel["pairing"]["secondsLeft"] <= 300
+    assert "pairing" not in panel, "the pairing code never goes to a page: anyone looking at the screen could pair"
     await viewer.close()
     await camera.close()
 
