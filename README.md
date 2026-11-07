@@ -68,7 +68,7 @@ with camera access is enough.
   requests get frames.
 - **Stream quality on the camera device:** resolution (360p, 540p, 720p), frames per second (10 to 30)
   and JPEG quality, with the measured size per frame.
-- **Network panel on every page:** one line per machine: the router, this PC (with any page open on
+- **Network panel** (the home page, and below the Stream page; not on Watch): one line per machine: the router, this PC (with any page open on
   it), the camera and every other device with its role, and which one is you. Never the pairing code:
   anyone looking at a screen, or at a screen shared in a call, could pair with it.
 - **The preview is the canvas that is sent:** what you see on the device is exactly what the PC gets.

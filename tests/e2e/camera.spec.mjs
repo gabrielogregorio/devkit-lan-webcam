@@ -56,8 +56,13 @@ async function pairAndOpen(page, url) {
   await page.goto(url, { waitUntil: 'load' });
   await page.getByLabel('Pairing code').fill(pairingCode());
   await page.getByRole('button', { name: 'Pair' }).click();
-  // The network panel only comes through the encrypted session, so it proves the session is up.
-  await page.getByRole('complementary', { name: 'Network' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+  // The network panel and the watch status only come through the encrypted session, so they prove it is up.
+  // The Watch page has no network panel: there the viewer status from the PC is the proof.
+  const sessionUp =
+    new URL(url).pathname === '/watch'
+      ? page.locator('#watchStatus', { hasText: 'No permission yet' })
+      : page.getByRole('complementary', { name: 'Network' });
+  await sessionUp.waitFor({ timeout: STATUS_TIMEOUT_MS });
 }
 
 const waitForCameraOpened = (page) =>
@@ -166,13 +171,13 @@ test('over plain HTTP, only the request the camera approves gets the picture', a
       { secure: false, subtle: 'undefined' },
       'the laptop really is on plain HTTP, without the browser crypto API',
     );
-    await laptop.getByRole('button', { name: 'Ask to watch' }).click();
+    await laptop.getByRole('button', { name: 'Ask to watch', exact: true }).click();
     await laptop.getByText(REQUEST_CODE).waitFor({ timeout: STATUS_TIMEOUT_MS });
     const laptopCode = (await laptop.getByText(REQUEST_CODE).textContent()).match(REQUEST_CODE)[1];
 
     const intruder = await openDevice();
     await pairAndOpen(intruder, `${HTTP_URL}/watch`);
-    await intruder.getByRole('button', { name: 'Ask to watch' }).click();
+    await intruder.getByRole('button', { name: 'Ask to watch', exact: true }).click();
     await intruder.getByText(REQUEST_CODE).waitFor({ timeout: STATUS_TIMEOUT_MS });
 
     await camera.getByRole('button', { name: `Approve ${laptopCode}` }).click();
@@ -200,7 +205,7 @@ test('an eavesdropper on plain HTTP records the whole watch session and finds no
 
       const laptop = await openDevice();
       await pairAndOpen(laptop, `${tap.url}/watch`);
-      await laptop.getByRole('button', { name: 'Ask to watch' }).click();
+      await laptop.getByRole('button', { name: 'Ask to watch', exact: true }).click();
       await laptop.getByText(REQUEST_CODE).waitFor({ timeout: STATUS_TIMEOUT_MS });
       const laptopCode = (await laptop.getByText(REQUEST_CODE).textContent()).match(REQUEST_CODE)[1];
       await camera.getByRole('button', { name: `Approve ${laptopCode}` }).click();

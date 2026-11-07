@@ -46,7 +46,7 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: 'Watch' })).toHaveAttribute('href', '/watch');
   });
 
-  it('shows the network panel on every page once the PC sends it', async () => {
+  it('shows the network panel once the PC sends it, but not while watching', async () => {
     const user = userEvent.setup();
     const server = renderPaired();
 
@@ -54,9 +54,13 @@ describe('App', () => {
 
     expect(screen.getByRole('complementary', { name: 'Network' })).toBeVisible();
 
-    await user.click(screen.getByRole('link', { name: 'Watch' }));
+    await user.click(screen.getByRole('link', { name: 'Stream' }));
 
     expect(screen.getByRole('complementary', { name: 'Network' })).toBeVisible();
+
+    await user.click(screen.getByRole('link', { name: 'Watch' }));
+
+    expect(screen.queryByRole('complementary', { name: 'Network' })).not.toBeInTheDocument();
   });
 
   it('moves between the pages without reloading and marks the current one', async () => {

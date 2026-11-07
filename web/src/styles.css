@@ -560,6 +560,19 @@ input[type='range']::-moz-range-thumb {
   box-shadow: var(--shadow);
 }
 
+button.watch-placeholder {
+  flex: none;
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+button.watch-placeholder:hover {
+  background: var(--yellow);
+}
+
 /* ---------- messages ---------- */
 .status {
   padding: 8px 10px;
@@ -568,10 +581,6 @@ input[type='range']::-moz-range-thumb {
   font-weight: 700;
   border: var(--border);
   background: var(--paper-sunken);
-}
-
-.status::before {
-  content: '> ' / '';
 }
 
 .ok {

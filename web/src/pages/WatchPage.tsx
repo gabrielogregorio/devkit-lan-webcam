@@ -17,6 +17,9 @@ export function WatchPage(): ReactNode {
   const phase = watchPhase(session.phase, status, frameUrl !== null);
   const messages = watchMessages(t, phase, status?.code ?? null, fps);
 
+  // Asking (or asking again after a denial) works from the button and from the message on the picture.
+  const ask = phase === 'not-requested' || phase === 'denied' ? () => store.requestToWatch(phase === 'denied') : null;
+
   const toggleFullscreen = (): void => {
     if (document.fullscreenElement) {
       void document.exitFullscreen();
@@ -31,21 +34,25 @@ export function WatchPage(): ReactNode {
       <RetroWindow title={t('Watching the LAN Webcam')} icon={Eye} titleId="watch-title" className="watch-window">
         <div className="watch-stage" ref={stageRef} onDoubleClick={toggleFullscreen}>
           {frameUrl && <img className="watch-frame" src={frameUrl} alt={t('Live camera')} />}
-          {messages.placeholder && <p className="watch-placeholder">{messages.placeholder}</p>}
+          {messages.placeholder && ask && (
+            <button
+              type="button"
+              className="watch-placeholder"
+              onClick={ask}
+              onDoubleClick={(event) => event.stopPropagation()}>
+              {messages.placeholder}
+            </button>
+          )}
+          {messages.placeholder && !ask && <p className="watch-placeholder">{messages.placeholder}</p>}
         </div>
         <div id="watchStatus" role="status" className={`status ${messages.kind}`}>
           {messages.status}
         </div>
       </RetroWindow>
       <div className="row">
-        {phase === 'not-requested' && (
-          <button type="button" className="primary" onClick={() => store.requestToWatch(false)}>
-            {t('Ask to watch')}
-          </button>
-        )}
-        {phase === 'denied' && (
-          <button type="button" className="primary" onClick={() => store.requestToWatch(true)}>
-            {t('Ask again with a new code')}
+        {ask && (
+          <button type="button" className="primary" onClick={ask}>
+            {phase === 'denied' ? t('Ask again with a new code') : t('Ask to watch')}
           </button>
         )}
         <button type="button" onClick={toggleFullscreen}>

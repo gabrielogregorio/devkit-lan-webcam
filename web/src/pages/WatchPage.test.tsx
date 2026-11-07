@@ -47,6 +47,26 @@ describe('WatchPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Request sent - code ab12-cd34');
   });
 
+  it('asks to watch from the message on the picture too, without going full screen', async () => {
+    const user = userEvent.setup();
+    const requestFullscreen = vi.fn(() => Promise.resolve());
+    HTMLElement.prototype.requestFullscreen = requestFullscreen;
+    const { server } = renderConnected(<WatchPage />);
+    act(() => server.pushJson(status('none', true, null)));
+
+    await user.dblClick(
+      screen.getByRole('button', { name: 'Ask to watch: the camera device sees your code and approves it.' }),
+    );
+
+    expect(server.received().filter((message) => message.json?.type === 'request').length).toBeGreaterThan(0);
+    expect(requestFullscreen).not.toHaveBeenCalled();
+
+    act(() => server.pushJson(status('denied')));
+    await user.click(screen.getByRole('button', { name: 'The camera device denied code ab12-cd34.' }));
+
+    expect(server.received().filter((message) => message.json?.type === 'request').length).toBeGreaterThan(1);
+  });
+
   it('asks again with a new key after a denial', async () => {
     const user = userEvent.setup();
     const { server } = renderConnected(<WatchPage />);
