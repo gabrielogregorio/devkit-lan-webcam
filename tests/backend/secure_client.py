@@ -44,14 +44,14 @@ class PairingResult:
 
 
 def spake2_client_tags(
-    secret: bytes, password_scalar: bytes, client_share: bytes, server_share: bytes
+    secret: bytes, code_scalar: bytes, client_share: bytes, server_share: bytes
 ) -> tuple[bytes, bytes, bytes, bytes]:
     unblinded = sodium.crypto_core_ed25519_sub(
-        server_share, sodium.crypto_scalarmult_ed25519_noclamp(password_scalar, POINT_N)
+        server_share, sodium.crypto_scalarmult_ed25519_noclamp(code_scalar, POINT_N)
     )
     shared_point = sodium.crypto_scalarmult_ed25519_noclamp(secret, unblinded)
     transcript = length_prefixed(
-        b"client", b"server", POINT_M, POINT_N, client_share, server_share, shared_point, password_scalar
+        b"client", b"server", POINT_M, POINT_N, client_share, server_share, shared_point, code_scalar
     )
     digest = hashlib.sha512(transcript).digest()
     confirm_keys = hkdf(b"", digest[KEY_BYTES:], b"ConfirmationKeys", 2 * KEY_BYTES)
@@ -63,10 +63,10 @@ def spake2_client_tags(
 async def pair(client: TestClient, code: str) -> PairingResult:
     websocket = await client.ws_connect("/ws/pair")
     secret = random_scalar()
-    password_scalar = scalar_from_code(code)
+    code_scalar = scalar_from_code(code)
     client_share = sodium.crypto_core_ed25519_add(
         sodium.crypto_scalarmult_ed25519_base_noclamp(secret),
-        sodium.crypto_scalarmult_ed25519_noclamp(password_scalar, POINT_M),
+        sodium.crypto_scalarmult_ed25519_noclamp(code_scalar, POINT_M),
     )
     await websocket.send_json({"type": "pair", "share": client_share.hex()})
     challenge = await websocket.receive_json(timeout=RECEIVE_TIMEOUT_SECONDS)
@@ -74,7 +74,7 @@ async def pair(client: TestClient, code: str) -> PairingResult:
         await websocket.close()
         return PairingResult(challenge["type"], None, challenge)
     candidates = [
-        spake2_client_tags(secret, password_scalar, client_share, bytes.fromhex(share))
+        spake2_client_tags(secret, code_scalar, client_share, bytes.fromhex(share))
         for share in challenge["shares"]
     ]
     await websocket.send_json({"type": "confirm", "tags": [candidate[0].hex() for candidate in candidates]})

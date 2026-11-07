@@ -47,10 +47,10 @@ def fixed_random(chunks: list[bytes]) -> Iterator[None]:
 
 def pairing_vectors() -> dict[str, object]:
     client_secret = sodium.crypto_core_ed25519_scalar_reduce(CLIENT_SCALAR_SOURCE)
-    password_scalar = crypto_channel.scalar_from_code(CODE)
+    code_scalar = crypto_channel.scalar_from_code(CODE)
     client_share = sodium.crypto_core_ed25519_add(
         sodium.crypto_scalarmult_ed25519_base_noclamp(client_secret),
-        sodium.crypto_scalarmult_ed25519_noclamp(password_scalar, crypto_channel.POINT_M),
+        sodium.crypto_scalarmult_ed25519_noclamp(code_scalar, crypto_channel.POINT_M),
     )
     server_scalars = iter(
         sodium.crypto_core_ed25519_scalar_reduce(hashlib.sha512(f"server-{index}".encode()).digest())
@@ -59,7 +59,7 @@ def pairing_vectors() -> dict[str, object]:
     with mock.patch("crypto_channel.random_scalar", side_effect=lambda: next(server_scalars)):
         candidates = [spake2_server(client_share, code) for code in (CODE, OTHER_CODE)]
     client_tags = [
-        spake2_client_tags(client_secret, password_scalar, client_share, candidate.share)[0] for candidate in candidates
+        spake2_client_tags(client_secret, code_scalar, client_share, candidate.share)[0] for candidate in candidates
     ]
     with fixed_random([SEAL_NONCE]):
         sealed = seal(candidates[0].encryption_key, json.dumps(CREDENTIAL).encode())

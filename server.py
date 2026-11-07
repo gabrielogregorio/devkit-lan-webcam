@@ -164,7 +164,11 @@ async def asset(request: web.Request) -> web.FileResponse:
     name = request.match_info["name"]
     if not ASSET_NAME.fullmatch(name):
         raise web.HTTPNotFound()
-    asset_path = os.path.join(request.app[DIST_KEY], "assets", name)
+    # The pattern already forbids "/" and a leading dot; resolving and checking the folder is a second lock.
+    assets_root = os.path.realpath(os.path.join(request.app[DIST_KEY], "assets"))
+    asset_path = os.path.realpath(os.path.join(assets_root, name))
+    if not asset_path.startswith(assets_root + os.sep):
+        raise web.HTTPNotFound()
     if not os.path.isfile(asset_path):
         raise web.HTTPNotFound()
     return web.FileResponse(asset_path, headers=dict(ASSET_CACHE_HEADERS))

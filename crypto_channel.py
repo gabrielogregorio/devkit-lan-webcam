@@ -63,6 +63,12 @@ def mac(key: bytes, data: bytes) -> bytes:
 
 
 def scalar_from_code(code: str) -> bytes:
+    """SPAKE2's w (RFC 9382). A fast hash on purpose: nothing stores w or lets anyone test codes offline.
+
+    A slow hash (scrypt, Argon2) protects a stored password database. Here the 6-digit code is never
+    stored, a recording cannot test guesses, and an online guess costs a whole pairing attempt
+    (rate-limited, the code changes every 5 minutes). See docs/security.md, "Why SHA-512 for the code".
+    """
     return sodium.crypto_core_ed25519_scalar_reduce(hashlib.sha512(PROTOCOL + b" spake2 " + code.encode()).digest())
 
 
@@ -106,21 +112,21 @@ class PairingCandidate:
 
 
 def spake2_server(client_share: bytes, code: str) -> PairingCandidate:
-    password_scalar = scalar_from_code(code)
+    code_scalar = scalar_from_code(code)
     secret = random_scalar()
     server_share = sodium.crypto_core_ed25519_add(
         sodium.crypto_scalarmult_ed25519_base_noclamp(secret),
-        sodium.crypto_scalarmult_ed25519_noclamp(password_scalar, POINT_N),
+        sodium.crypto_scalarmult_ed25519_noclamp(code_scalar, POINT_N),
     )
     unblinded = sodium.crypto_core_ed25519_sub(
-        client_share, sodium.crypto_scalarmult_ed25519_noclamp(password_scalar, POINT_M)
+        client_share, sodium.crypto_scalarmult_ed25519_noclamp(code_scalar, POINT_M)
     )
     try:
         shared_point = sodium.crypto_scalarmult_ed25519_noclamp(secret, unblinded)
     except (CryptoError, RuntimeError) as error:
         raise HandshakeError("degenerate share") from error
     transcript = length_prefixed(
-        b"client", b"server", POINT_M, POINT_N, client_share, server_share, shared_point, password_scalar
+        b"client", b"server", POINT_M, POINT_N, client_share, server_share, shared_point, code_scalar
     )
     digest = hashlib.sha512(transcript).digest()
     confirm_keys = hkdf(b"", digest[KEY_BYTES:], b"ConfirmationKeys", 2 * KEY_BYTES)

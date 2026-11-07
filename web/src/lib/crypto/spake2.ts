@@ -85,14 +85,14 @@ export function decodeServerPoint(bytes: Uint8Array): EdPoint {
 }
 
 export function startPairing(code: string, random: RandomSource = secureRandom): PairingStart {
-  const passwordScalar = scalarFromCode(code);
+  const codeScalar = scalarFromCode(code);
   const secret = randomScalar(random);
-  const clientShare = Point.BASE.multiply(secret).add(POINT_M.multiply(passwordScalar)).toBytes();
+  const clientShare = Point.BASE.multiply(secret).add(POINT_M.multiply(codeScalar)).toBytes();
 
   const finish = (serverShares: readonly Uint8Array[]): PairingCandidate[] =>
     serverShares.map((serverShareBytes) => {
       const serverShare = decodeServerPoint(serverShareBytes);
-      const sharedPoint = serverShare.subtract(POINT_N.multiply(passwordScalar)).multiply(secret);
+      const sharedPoint = serverShare.subtract(POINT_N.multiply(codeScalar)).multiply(secret);
       const transcript = lengthPrefixed(
         utf8ToBytes('client'),
         utf8ToBytes('server'),
@@ -101,7 +101,7 @@ export function startPairing(code: string, random: RandomSource = secureRandom):
         clientShare,
         serverShareBytes,
         sharedPoint.toBytes(),
-        numberToLittleEndian(passwordScalar),
+        numberToLittleEndian(codeScalar),
       );
       const digest = sha512(transcript);
       const confirmKeys = hkdf(

@@ -51,6 +51,23 @@ payload as the encryption left it.
 Code: `crypto_channel.py`, `handshake.py`, `pairing.py`, `access.py` on the PC; `web/src/lib/crypto/`
 in the browser (the audited noble libraries, which work without `crypto.subtle` on plain HTTP).
 
+### Why SHA-512 for the code
+
+The code becomes SPAKE2's `w` with one SHA-512 (`scalar_from_code`). CodeQL flags this as "a password in a
+fast hash". A slow hash (scrypt, Argon2) is the right answer when a stored password database can leak and be
+cracked offline. Neither happens here:
+
+- the 6-digit code is never stored; the PC keeps a random seed and the code changes every 5 minutes;
+- a recording of the pairing cannot test guesses (that is what SPAKE2 is for);
+- each online guess costs a whole pairing attempt, 5 per IP per 10 minutes, 10 until the code changes.
+
+And it would not help: with only a million codes, a slow hash that takes 100 ms per guess still falls in
+about a day of one CPU core, while it would make every pairing slower on a phone. The real limit is the
+rate limit and the rotation above.
+
+CodeQL does not scan `tests/` (`.github/codeql/codeql-config.yml`): the tests write fake secrets to temporary
+files on purpose, and the test client repeats the same SPAKE2 steps as the server.
+
 ## Randomness
 
 Every key, seed and nonce the PC draws (pairing seed, device ids and secrets, SPAKE2 scalars, session

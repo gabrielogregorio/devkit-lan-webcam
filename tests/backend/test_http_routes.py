@@ -42,6 +42,16 @@ async def test_assets_never_leave_the_assets_folder(client: TestClient, path: st
     assert response.status == 404, path
 
 
+async def test_a_link_inside_assets_that_points_outside_is_not_followed(client: TestClient, dist_dir: Path) -> None:
+    outside = dist_dir.parent / "private.txt"
+    outside.write_text("not for the network")
+    (dist_dir / "assets" / "escape.txt").symlink_to(outside)
+
+    response = await client.get("/assets/escape.txt")
+
+    assert response.status == 404
+
+
 @pytest.mark.parametrize(
     "path",
     ["/key.pem", "/cert.pem", "/server.py", "/../server.py", "/index.html", "/web/dist/index.html", "/nope"],
