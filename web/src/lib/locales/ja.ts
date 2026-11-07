@@ -70,9 +70,9 @@ export const JA: Readonly<Record<string, string>> = {
   'Ask to watch: the camera device sees your code and approves it.':
     '視聴をリクエスト：カメラの端末があなたのコードを見て承認します。',
   'No permission yet': 'まだ許可されていません',
-  'Waiting for the camera device to approve code {code}.': 'カメラの端末がコード {code} を承認するのを待っています。',
+  'Waiting for the camera device to approve.': 'カメラの端末の承認を待っています。',
   'Request sent - code {code}': 'リクエスト送信済み - コード {code}',
-  'The camera device denied code {code}.': 'カメラの端末がコード {code} を拒否しました。',
+  'The camera device denied the request.': 'カメラの端末がリクエストを拒否しました。',
   Denied: '拒否されました',
   'Approved. No camera is streaming right now.': '承認されました。現在配信中のカメラはありません。',
   'Approved, waiting for frames…': '承認されました。映像を待っています…',

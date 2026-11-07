@@ -59,12 +59,12 @@ export function watchMessages(
       };
     case 'pending':
       return {
-        placeholder: t('Waiting for the camera device to approve code {code}.', { code }),
+        placeholder: t('Waiting for the camera device to approve.'),
         status: t('Request sent - code {code}', { code }),
         kind: 'warn',
       };
     case 'denied':
-      return { placeholder: t('The camera device denied code {code}.', { code }), status: t('Denied'), kind: 'err' };
+      return { placeholder: t('The camera device denied the request.'), status: t('Denied'), kind: 'err' };
     case 'no-camera':
       return {
         placeholder: t('Approved. No camera is streaming right now.'),

@@ -42,12 +42,12 @@ describe('watch texts', () => {
     [
       'pending',
       {
-        placeholder: 'Waiting for the camera device to approve code ab12-cd34.',
+        placeholder: 'Waiting for the camera device to approve.',
         status: 'Request sent - code ab12-cd34',
         kind: 'warn',
       },
     ],
-    ['denied', { placeholder: 'The camera device denied code ab12-cd34.', status: 'Denied', kind: 'err' }],
+    ['denied', { placeholder: 'The camera device denied the request.', status: 'Denied', kind: 'err' }],
     [
       'no-camera',
       { placeholder: 'Approved. No camera is streaming right now.', status: 'Waiting for the camera…', kind: 'warn' },

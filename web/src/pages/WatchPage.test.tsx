@@ -61,7 +61,7 @@ describe('WatchPage', () => {
     expect(requestFullscreen).not.toHaveBeenCalled();
 
     act(() => server.pushJson(status('denied')));
-    await user.click(screen.getByRole('button', { name: 'The camera device denied code ab12-cd34.' }));
+    await user.click(screen.getByRole('button', { name: 'The camera device denied the request.' }));
 
     expect(server.received().filter((message) => message.json?.type === 'request').length).toBeGreaterThan(1);
   });

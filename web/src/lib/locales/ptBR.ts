@@ -70,9 +70,9 @@ export const PT_BR: Readonly<Record<string, string>> = {
   'Ask to watch: the camera device sees your code and approves it.':
     'Peça pra assistir: o aparelho da câmera vê o seu código e aprova.',
   'No permission yet': 'Sem permissão ainda',
-  'Waiting for the camera device to approve code {code}.': 'Esperando o aparelho da câmera aprovar o código {code}.',
+  'Waiting for the camera device to approve.': 'Esperando o aparelho da câmera aprovar.',
   'Request sent - code {code}': 'Pedido enviado - código {code}',
-  'The camera device denied code {code}.': 'O aparelho da câmera recusou o código {code}.',
+  'The camera device denied the request.': 'O aparelho da câmera recusou o pedido.',
   Denied: 'Recusado',
   'Approved. No camera is streaming right now.': 'Aprovado. Nenhuma câmera transmitindo agora.',
   'Approved, waiting for frames…': 'Aprovado, esperando as imagens…',

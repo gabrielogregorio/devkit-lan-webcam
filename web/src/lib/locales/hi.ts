@@ -70,9 +70,9 @@ export const HI: Readonly<Record<string, string>> = {
   'Ask to watch: the camera device sees your code and approves it.':
     'देखने का अनुरोध करें: कैमरा वाला डिवाइस आपका कोड देखकर मंज़ूर करता है।',
   'No permission yet': 'अभी अनुमति नहीं',
-  'Waiting for the camera device to approve code {code}.': 'कैमरा वाले डिवाइस के कोड {code} मंज़ूर करने का इंतज़ार।',
+  'Waiting for the camera device to approve.': 'कैमरा वाले डिवाइस की मंज़ूरी का इंतज़ार।',
   'Request sent - code {code}': 'अनुरोध भेजा गया - कोड {code}',
-  'The camera device denied code {code}.': 'कैमरा वाले डिवाइस ने कोड {code} अस्वीकार किया।',
+  'The camera device denied the request.': 'कैमरा वाले डिवाइस ने अनुरोध अस्वीकार किया।',
   Denied: 'अस्वीकार',
   'Approved. No camera is streaming right now.': 'मंज़ूर। अभी कोई कैमरा स्ट्रीम नहीं कर रहा।',
   'Approved, waiting for frames…': 'मंज़ूर, फ़्रेम का इंतज़ार…',

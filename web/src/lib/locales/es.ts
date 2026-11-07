@@ -69,10 +69,9 @@ export const ES: Readonly<Record<string, string>> = {
   'Ask to watch: the camera device sees your code and approves it.':
     'Pide ver: el dispositivo de la cámara ve tu código y lo aprueba.',
   'No permission yet': 'Aún sin permiso',
-  'Waiting for the camera device to approve code {code}.':
-    'Esperando a que el dispositivo de la cámara apruebe el código {code}.',
+  'Waiting for the camera device to approve.': 'Esperando a que el dispositivo de la cámara apruebe.',
   'Request sent - code {code}': 'Solicitud enviada - código {code}',
-  'The camera device denied code {code}.': 'El dispositivo de la cámara rechazó el código {code}.',
+  'The camera device denied the request.': 'El dispositivo de la cámara rechazó la solicitud.',
   Denied: 'Rechazado',
   'Approved. No camera is streaming right now.': 'Aprobado. Ninguna cámara está transmitiendo ahora.',
   'Approved, waiting for frames…': 'Aprobado, esperando imágenes…',
