@@ -1,0 +1,6 @@
+web/dist
+coverage
+node_modules
+trash
+tmp
+pnpm-lock.yaml

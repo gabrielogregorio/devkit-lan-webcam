@@ -2,7 +2,8 @@
 """Top bar icon for LAN Webcam: turns the server on and off.
 
 Always on the bar and off at login: gray icon = off, colored = on air (the port is listening).
-Menu: status, On, LAN address, Show QR code, Open in the browser, View log. A middle click on the icon toggles it.
+Menu: status, On, LAN address, Show QR code, Open in the browser, the pairing code with Change code and
+Unpair all devices, View log. A middle click on the icon toggles it.
 Starting it opens the QR code of the LAN address for the phone.
 Only errors notify. There is no "Quit": unchecking "On" is how it turns off.
 
@@ -20,6 +21,8 @@ import signal
 import socket
 import subprocess
 import sys
+
+import pairing
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -69,6 +72,12 @@ PT_BR = {
     "Close": "Fechar",
     "{name} did not start": "{name} não subiu",
     "exited with code {code}; see the log": "saiu com código {code}; veja o log",
+    "Pairing code: {code} ({time})": "Código de pareamento: {code} ({time})",
+    "Change code": "Trocar código",
+    "Unpair all devices": "Desparear todos os aparelhos",
+    "New pairing code: {code}": "Novo código de pareamento: {code}",
+    "Every device was unpaired": "Todos os aparelhos foram despareados",
+    "They need the pairing code again.": "Eles precisam do código de pareamento de novo.",
 }
 
 
@@ -161,6 +170,12 @@ def status_text(on_air: bool, starting: bool) -> str:
     if starting:
         return tr("{name}: starting…", name=title())
     return tr("{name}: off", name=title())
+
+
+def pairing_label(code: str, seconds_left: int) -> str:
+    """ "Pairing code: 123 456 (4:05)": the code devices type once, and how long it still lasts."""
+    minutes, seconds = divmod(seconds_left, 60)
+    return tr("Pairing code: {code} ({time})", code=f"{code[:3]} {code[3:]}", time=f"{minutes}:{seconds:02d}")
 
 
 def failure_note(code, last_log_line: str) -> str:
@@ -318,6 +333,17 @@ def run_icon():
                 self.it_open = Gtk.MenuItem(label=tr("Open in the browser"))
                 self.it_open.connect("activate", lambda *_: subprocess.Popen(["xdg-open", APP["open"]]))
                 m.append(self.it_open)
+            m.append(Gtk.SeparatorMenuItem())
+            self.it_code = Gtk.MenuItem(label="")
+            self.it_code.set_sensitive(False)
+            m.append(self.it_code)
+            it_change = Gtk.MenuItem(label=tr("Change code"))
+            it_change.connect("activate", self._change_code)
+            m.append(it_change)
+            it_unpair = Gtk.MenuItem(label=tr("Unpair all devices"))
+            it_unpair.connect("activate", self._unpair_all)
+            m.append(it_unpair)
+            m.append(Gtk.SeparatorMenuItem())
             it_log = Gtk.MenuItem(label=tr("View log"))
             it_log.connect("activate", self._view_log)
             m.append(it_log)
@@ -325,6 +351,15 @@ def run_icon():
             m.show_all()
             self.ind.set_menu(m)
             self.ind.set_secondary_activate_target(self.it_on)  # middle click
+
+        def _change_code(self, *_):
+            code, _seconds_left = pairing.current_code(pairing.rotate_seed())
+            self.refresh()
+            notify(tr("New pairing code: {code}", code=f"{code[:3]} {code[3:]}"))
+
+        def _unpair_all(self, *_):
+            pairing.clear_devices()
+            notify(tr("Every device was unpaired"), tr("They need the pairing code again."))
 
         def _view_log(self, *_):
             os.makedirs(CACHE, exist_ok=True)
@@ -343,6 +378,7 @@ def run_icon():
                     notify(tr("{name} did not start", name=APP["name"]), failure_note(code, last_log_line()))
             self.on_air = bool(self._app_pids())
             starting = alive and not self.on_air
+            self.it_code.set_label(pairing_label(*pairing.current_code(pairing.load_seed())))
             text = status_text(self.on_air, starting)
             self.it_status.set_label(text)
             self.ind.set_icon_full(f"{APP['slug']}-{'on' if self.on_air else 'off'}", text)

@@ -1,0 +1,151 @@
+/*
+ * UI strings. English is the source text and the key; PT_BR holds the Brazilian Portuguese line.
+ * The language comes from ?lang=en|pt-BR or else from the browser's first preferred language:
+ * pt* shows pt-BR, anything else shows English. i18n.test.ts fails on a missing line, on
+ * different {placeholders} or on a line that is no longer used.
+ */
+export type Language = 'en' | 'pt-BR';
+export type TranslationValues = Record<string, string | number>;
+export type Translate = (text: string, values?: TranslationValues) => string;
+
+export const PT_BR: Readonly<Record<string, string>> = {
+  'LAN Webcam': 'LAN Webcam',
+  'Skip to content': 'Pular para o conteúdo',
+  Pages: 'Páginas',
+  '📷 Stream': '📷 Transmitir',
+  '👀 Watch': '👀 Assistir',
+  'Any camera on your network becomes a webcam on the PC.': 'Qualquer câmera da sua rede vira webcam no PC.',
+  'Stream this camera': 'Transmitir esta câmera',
+  'Watch the camera': 'Assistir a câmera',
+  'Open the Stream page on the phone and the Watch page on the PC: both are linked at the top of every page.':
+    'Abra a página Transmitir no celular e a página Assistir no PC: as duas ficam no topo de toda página.',
+  '📷 Camera → PC webcam': '📷 Câmera → webcam do PC',
+  'Camera preview, exactly what the PC gets': 'Prévia da câmera, exatamente o que o PC recebe',
+  Zoom: 'Zoom',
+  Mirror: 'Espelhar',
+  'Rotate 90°': 'Girar 90°',
+  'Fit ✓': 'Encaixar ✓',
+  'Crop ✓': 'Cortar ✓',
+  Reset: 'Reset',
+  '📷 Back': '📷 Traseira',
+  '🤳 Front': '🤳 Frontal',
+  Lens: 'Lente',
+  'Start streaming': 'Iniciar transmissão',
+  Stop: 'Parar',
+  'Tap "Start streaming"': 'Toque em "Iniciar transmissão"',
+  'On the preview: drag to move, pinch (2 fingers) to zoom. The camera becomes the "LAN Webcam" webcam on the PC. Keep this page open and the screen on.':
+    'Na prévia: arraste para mover, pinça (2 dedos) para zoom. A câmera vira a webcam "LAN Webcam" no PC. Mantenha a página aberta e a tela ligada.',
+  camera: 'câmera',
+  'Camera {number}': 'Câmera {number}',
+  '{count} camera(s) found': '{count} câmera(s) encontrada(s)',
+  '{count} camera(s) found - 🟢 streaming': '{count} câmera(s) encontrada(s) - 🟢 transmitindo',
+  '🟢 Streaming - {camera}': '🟢 Transmitindo - {camera}',
+  '👁️ Previewing - {camera}': '👁️ Pré-visualizando - {camera}',
+  'That camera did not open ({reason}). Back to the previous one.':
+    'Essa câmera não abriu ({reason}). Voltei pra anterior.',
+  'That camera did not open ({reason}). None available.': 'Essa câmera não abriu ({reason}). Nenhuma disponível.',
+  'Opening camera…': 'Abrindo câmera…',
+  'No camera. Allow access and tap Back/Front': 'Sem câmera. Permita o acesso e toque Traseira/Frontal',
+  Stopped: 'Parado',
+  '👀 Watching the LAN Webcam': '👀 Assistindo a LAN Webcam',
+  'Live camera': 'Câmera ao vivo',
+  '⛶ Full screen': '⛶ Tela cheia',
+  '🟢 Live - {fps} fps': '🟢 Ao vivo - {fps} fps',
+  '🟢 Live': '🟢 Ao vivo',
+  'Waiting for the camera…': 'Esperando a câmera…',
+  'Lost the connection to the PC. Trying again…': 'Perdi a conexão com o PC. Tentando de novo…',
+  'Reconnecting…': 'Reconectando…',
+  'Connecting…': 'Conectando…',
+  'Use the camera of this device as the "LAN Webcam" on the PC, and approve who may watch it.':
+    'Use a câmera deste aparelho como a "LAN Webcam" no PC, e aprove quem pode assistir.',
+  'Ask to watch the camera another device is streaming; it approves your code.':
+    'Peça pra assistir a câmera que outro aparelho está transmitindo; ele aprova o seu código.',
+  'Not connected to the PC yet.': 'Ainda sem conexão com o PC.',
+  'Another device started streaming.': 'Outro aparelho começou a transmitir.',
+  'The PC webcam stopped taking frames.': 'A webcam do PC parou de receber imagens.',
+  'The PC could not start the webcam (ffmpeg).': 'O PC não conseguiu ligar a webcam (ffmpeg).',
+  '👀 Who may watch': '👀 Quem pode assistir',
+  'Start streaming to see and approve who asks to watch.':
+    'Inicie a transmissão pra ver e aprovar quem pede pra assistir.',
+  'Nobody asked to watch yet. Other devices ask on the Watch page.':
+    'Ninguém pediu pra assistir ainda. Outros aparelhos pedem na página Assistir.',
+  'Watch requests': 'Pedidos pra assistir',
+  'waiting for you': 'esperando você',
+  'approved, page closed': 'aprovado, página fechada',
+  Approve: 'Aprovar',
+  Deny: 'Recusar',
+  Revoke: 'Revogar',
+  'Approve {code}': 'Aprovar {code}',
+  'Deny {code}': 'Recusar {code}',
+  'Revoke {code}': 'Revogar {code}',
+  'Stream quality': 'Qualidade da transmissão',
+  Resolution: 'Resolução',
+  'Frames per second': 'Quadros por segundo',
+  'Image quality': 'Qualidade da imagem',
+  'The size of each frame shows up while streaming.': 'O tamanho de cada quadro aparece durante a transmissão.',
+  'Ask to watch: the camera device sees your code and approves it.':
+    'Peça pra assistir: o aparelho da câmera vê o seu código e aprova.',
+  'No permission yet': 'Sem permissão ainda',
+  'Waiting for the camera device to approve code {code}.': 'Esperando o aparelho da câmera aprovar o código {code}.',
+  'Request sent - code {code}': 'Pedido enviado - código {code}',
+  'The camera device denied code {code}.': 'O aparelho da câmera recusou o código {code}.',
+  Denied: 'Recusado',
+  'Approved. No camera is streaming right now.': 'Aprovado. Nenhuma câmera transmitindo agora.',
+  'Approved, waiting for frames…': 'Aprovado, esperando as imagens…',
+  'Ask to watch': 'Pedir pra assistir',
+  'Ask again with a new code': 'Pedir de novo com código novo',
+  'Your code: {code}': 'Seu código: {code}',
+  'Each tab asks with its own key; the camera device approves the code shown here. Double click the picture for full screen.':
+    'Cada aba pede com a própria chave; o aparelho da câmera aprova o código mostrado aqui. Duplo clique na imagem pra tela cheia.',
+  '🔐 Pair this device': '🔐 Parear este aparelho',
+  'Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.':
+    'Digite o código de 6 dígitos que aparece no PC: no ícone da LAN Webcam na barra superior, ou com ./run.sh code.',
+  'Pairing code': 'Código de pareamento',
+  Pair: 'Parear',
+  'Wrong code. Check the code on the PC (it changes every few minutes).':
+    'Código errado. Confira o código no PC (ele muda a cada poucos minutos).',
+  'Too many wrong codes from this device. Try again in {seconds} s.':
+    'Códigos errados demais deste aparelho. Tente de novo em {seconds} s.',
+  'Pairing is locked after too many wrong codes. Change the code in the PC icon.':
+    'O pareamento travou depois de códigos errados demais. Troque o código no ícone do PC.',
+  'Could not reach the PC. Check the network and try again.':
+    'Não deu pra falar com o PC. Confira a rede e tente de novo.',
+  'Paired.': 'Pareado.',
+  'Pairing happens once per browser: the code never travels over the network, and everything after it is encrypted, even over plain HTTP.':
+    'O pareamento acontece uma vez por navegador: o código nunca passa pela rede, e tudo depois dele é criptografado, até em HTTP puro.',
+  Network: 'Rede',
+  router: 'roteador',
+  'PC (server and webcam)': 'PC (servidor e webcam)',
+  'Open pages': 'Páginas abertas',
+  streaming: 'transmitindo',
+  watching: 'assistindo',
+  'asked to watch': 'pediu pra assistir',
+  denied: 'recusado',
+  'page open': 'página aberta',
+  you: 'você',
+  'Code to pair another device: {code} (changes in {time})':
+    'Código pra parear outro aparelho: {code} (muda em {time})',
+};
+
+const isPortuguese = (language: string | undefined): boolean => /^pt([-_]|$)/i.test(language ?? '');
+
+export function detectLanguage(search: string, languages: readonly string[]): Language {
+  const forced = new URLSearchParams(search).get('lang');
+  if (forced) {
+    return isPortuguese(forced) ? 'pt-BR' : 'en';
+  }
+
+  return isPortuguese(languages[0]) ? 'pt-BR' : 'en';
+}
+
+export const fill = (text: string, values: TranslationValues = {}): string =>
+  text.replace(/\{(\w+)\}/g, (match, name: string) => (name in values ? String(values[name]) : match));
+
+export const translator =
+  (language: Language): Translate =>
+  (text, values) =>
+    fill(language === 'pt-BR' ? (PT_BR[text] ?? text) : text, values);
+
+export const currentLanguage: Language = detectLanguage(window.location.search, navigator.languages);
+
+export const t: Translate = translator(currentLanguage);

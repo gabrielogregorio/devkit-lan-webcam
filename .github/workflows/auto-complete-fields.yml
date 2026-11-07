@@ -17,8 +17,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
       - name: VERSION is semver and, on a release branch, its tag must not exist yet
         env:
+          GH_TOKEN: ${{ github.token }}
           HEAD_REF: ${{ github.head_ref }}
         run: |
           VERSION=$(tr -d '[:space:]' < VERSION)
@@ -30,7 +33,8 @@ jobs:
             echo "$HEAD_REF is not a release/x.x.x branch: the tag is not checked"
             exit 0
           fi
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+          # Through the API: the checkout keeps no credentials for git to use.
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$VERSION" > /dev/null 2>&1; then
             echo "::error file=VERSION::v$VERSION is already released. Bump VERSION in this PR."
             exit 1
           fi
@@ -43,6 +47,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
       - name: read VERSION
         run: echo "TAG_VERSION=v$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
 
@@ -77,9 +83,9 @@ jobs:
               [(f) => f.endsWith('.md'), 'documentation'],
               [(f) => f.startsWith('tests/') || f === 'run-tests.sh', 'tests'],
               [(f) => f.startsWith('.github/'), 'ci'],
-              [(f) => f === 'i18n.js', 'i18n'],
+              [(f) => f === 'web/src/lib/i18n.ts', 'i18n'],
               [(f) => f === 'server.py', 'backend'],
-              [(f) => f === 'index.html' || f === 'view.js', 'frontend'],
+              [(f) => f.startsWith('web/') || f === 'package.json' || f === 'pnpm-lock.yaml', 'frontend'],
               [(f) => f.endsWith('.sh') && !f.startsWith('tests/') && f !== 'run-tests.sh', 'scripts'],
             ];
             for (const f of files) {
