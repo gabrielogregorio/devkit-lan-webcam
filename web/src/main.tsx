@@ -4,7 +4,7 @@ import { App } from '@/App';
 import { currentLanguage } from '@/lib/i18n';
 import '@/styles.css';
 
-document.documentElement.lang = currentLanguage;
+document.documentElement.lang = currentLanguage();
 
 const rootElement = document.getElementById('root');
 

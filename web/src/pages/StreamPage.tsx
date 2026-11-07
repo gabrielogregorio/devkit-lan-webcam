@@ -15,7 +15,7 @@ import { RequestList } from '@/components/RequestList';
 import { RetroWindow } from '@/components/RetroWindow';
 import { CameraStreamer, type CameraOption } from '@/lib/cameraStreamer';
 import { GestureTracker, type ScreenPoint } from '@/lib/gestures';
-import { t } from '@/lib/i18n';
+import { t, useLanguage } from '@/lib/i18n';
 import { loadQuality, saveQuality, type QualitySettings } from '@/lib/quality';
 import { useSession, useSessionStore } from '@/lib/SessionContext';
 import { fitButtonLabel, zoomLabel, type StatusMessage } from '@/lib/streamText';
@@ -46,7 +46,9 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
   const streamerRef = useRef<CameraStreamer | null>(null);
   const gesturesRef = useRef(new GestureTracker());
   const [view, setView] = useState<ViewState>(resetView);
-  const [status, setStatus] = useState<StatusMessage>({ text: t('Tap "Start streaming"'), kind: '' });
+  // Null until the streamer reports something: the first hint is written at render, in the language of now.
+  const [reported, setStatus] = useState<StatusMessage | null>(null);
+  const status = reported ?? { text: t('Tap "Start streaming"'), kind: '' };
   const [streaming, setStreaming] = useState(false);
   const [cameras, setCameras] = useState<CameraOption[]>([]);
   const [selectedCamera, setSelectedCamera] = useState('');
@@ -54,6 +56,12 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
   const [frameSize, setFrameSize] = useState<number | null>(null);
   const store = useSessionStore();
   const session = useSession();
+  const language = useLanguage();
+
+  useEffect(() => {
+    // The status line was written in the old language: write it again in the new one.
+    streamerRef.current?.refreshStatus();
+  }, [language]);
 
   useEffect(() => {
     // The canvas is always rendered, so its ref is set by the time the effect runs.

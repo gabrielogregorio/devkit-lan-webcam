@@ -1,9 +1,10 @@
 import { Camera, Eye } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { LanguagePicker } from '@/components/LanguagePicker';
 import { NavLink } from '@/components/NavLink';
 import { NetworkPanel } from '@/components/NetworkPanel';
 import { PairingForm } from '@/components/PairingForm';
-import { t } from '@/lib/i18n';
+import { t, useLanguage } from '@/lib/i18n';
 import { ROUTES, useRoute } from '@/lib/router';
 import { SessionProvider, useSession } from '@/lib/SessionContext';
 import type { SessionStore } from '@/lib/sessionStore';
@@ -26,6 +27,8 @@ export function App({ store }: Readonly<AppProps>): ReactNode {
 function Shell(): ReactNode {
   const route = useRoute();
   const session = useSession();
+  // Re-renders the whole page in place when the language changes.
+  useLanguage();
 
   return (
     <>
@@ -46,6 +49,7 @@ function Shell(): ReactNode {
             {t('Watch')}
           </NavLink>
         </nav>
+        <LanguagePicker />
       </header>
       <main id="content" className="site-main">
         {session.phase === 'unpaired' ? (

@@ -1,4 +1,16 @@
-import { PT_BR, detectLanguage, fill, translator } from '@/lib/i18n';
+import { act, renderHook } from '@testing-library/react';
+import {
+  CATALOGS,
+  currentLanguage,
+  detectLanguage,
+  fill,
+  matchLanguage,
+  setLanguage,
+  t,
+  translator,
+  useLanguage,
+} from '@/lib/i18n';
+import { readJson } from '@/lib/storage';
 
 // Every source file of the app: t('...') calls must all have their pt-BR line.
 const sources = import.meta.glob<string>(['../**/*.{ts,tsx}', '!../**/*.test.{ts,tsx}'], {
@@ -26,20 +38,20 @@ describe('i18n catalog', () => {
     expect(usedStrings.has('Watching the LAN Webcam')).toBe(true);
   });
 
-  it('has a pt-BR line for every string the app uses', () => {
-    expect([...usedStrings].filter((text) => !(text in PT_BR))).toEqual([]);
+  it.each(Object.entries(CATALOGS))('%s has a line for every string the app uses', (_language, catalog) => {
+    expect([...usedStrings].filter((text) => !(text in catalog))).toEqual([]);
   });
 
-  it('keeps the same {placeholders} in pt-BR', () => {
-    const mismatched = Object.entries(PT_BR).filter(
-      ([english, portuguese]) => placeholders(english).join() !== placeholders(portuguese).join(),
+  it.each(Object.entries(CATALOGS))('%s keeps the same {placeholders}', (_language, catalog) => {
+    const mismatched = Object.entries(catalog).filter(
+      ([english, translated]) => placeholders(english).join() !== placeholders(translated).join(),
     );
 
     expect(mismatched).toEqual([]);
   });
 
-  it('has no pt-BR line left unused', () => {
-    expect(Object.keys(PT_BR).filter((text) => !usedStrings.has(text))).toEqual([]);
+  it.each(Object.entries(CATALOGS))('%s has no line left unused', (_language, catalog) => {
+    expect(Object.keys(catalog).filter((text) => !usedStrings.has(text))).toEqual([]);
   });
 });
 
@@ -49,18 +61,31 @@ describe('language', () => {
     [['pt'], 'pt-BR'],
     [['pt-PT'], 'pt-BR'],
     [['en-US', 'pt-BR'], 'en'],
-    [['es'], 'en'],
+    [['es-MX'], 'es'],
+    [['fr-CA'], 'fr'],
+    [['zh-Hant-TW'], 'zh'],
+    [['hi-IN'], 'hi'],
+    [['ja_JP'], 'ja'],
+    [['de'], 'en'],
     [[], 'en'],
   ])('browser languages %j give %s', (languages, expected) => {
     expect(detectLanguage('', languages)).toBe(expected);
   });
 
   it.each([
-    ['?lang=en', ['pt-BR'], 'en'],
-    ['?lang=pt-BR', ['en-US'], 'pt-BR'],
-    ['?lang=pt_BR', ['en-US'], 'pt-BR'],
-  ])('%s overrides the browser', (search, languages, expected) => {
-    expect(detectLanguage(search, languages)).toBe(expected);
+    ['?lang=en', ['pt-BR'], 'ja', 'en'],
+    ['?lang=pt_BR', ['en-US'], null, 'pt-BR'],
+    ['?lang=xx', ['en-US'], 'fr', 'fr'],
+    ['', ['en-US'], 'ja', 'ja'],
+    ['', ['es'], 42, 'es'],
+  ])('%s with browser %j and saved %j gives %s', (search, languages, saved, expected) => {
+    expect(detectLanguage(search, languages, saved)).toBe(expected);
+  });
+
+  it('matches nothing for an empty or unknown tag', () => {
+    expect(matchLanguage(null)).toBeNull();
+    expect(matchLanguage('')).toBeNull();
+    expect(matchLanguage('klingon')).toBeNull();
   });
 
   it('fills placeholders and falls back to English', () => {
@@ -68,8 +93,25 @@ describe('language', () => {
     const english = translator('en');
 
     expect(portuguese('{count} camera(s) found', { count: 2 })).toBe('2 câmera(s) encontrada(s)');
+    expect(translator('ja')('{count} camera(s) found', { count: 2 })).toBe('カメラが 2 台見つかりました');
     expect(english('{count} camera(s) found', { count: 2 })).toBe('2 camera(s) found');
     expect(portuguese('not in the catalog')).toBe('not in the catalog');
     expect(fill('{a} and {b}', { a: 1 })).toBe('1 and {b}');
+  });
+
+  it('switches the language in place, saves it and tells the components', () => {
+    const before = currentLanguage();
+    const { result } = renderHook(() => useLanguage());
+
+    act(() => setLanguage('fr'));
+
+    expect(result.current).toBe('fr');
+    expect(t('Stop')).toBe('Arrêter');
+    expect(document.documentElement.lang).toBe('fr');
+    expect(readJson('local', 'language')).toBe('fr');
+
+    act(() => setLanguage(before));
+
+    expect(result.current).toBe(before);
   });
 });

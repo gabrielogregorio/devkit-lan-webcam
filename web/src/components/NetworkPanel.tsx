@@ -1,4 +1,4 @@
-import { Monitor, Network, Router } from 'lucide-react';
+import { Monitor, Network, Router, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RetroWindow } from '@/components/RetroWindow';
 import { deviceLabel, DEVICE_ICONS } from '@/lib/deviceLabel';
@@ -10,6 +10,18 @@ import { clockLabel, useCountdown } from '@/lib/useCountdown';
 interface NetworkPanelProps {
   network: NetworkPanelData;
   receivedAt: number;
+}
+
+// The most telling role first: it also picks the colour of the line.
+const ROLE_ORDER: readonly PeerRole[] = ['camera', 'watching', 'pending', 'denied', 'idle'];
+
+/** Every page open from one address, as one line. */
+interface Machine {
+  ip: string;
+  roles: PeerRole[];
+  names: string[];
+  icon: LucideIcon;
+  you: boolean;
 }
 
 function roleText(role: PeerRole): string {
@@ -27,58 +39,93 @@ function roleText(role: PeerRole): string {
   }
 }
 
-function PeerNode({ peer }: Readonly<{ peer: Peer }>): ReactNode {
-  const label = deviceLabel(peer.device);
-  const DeviceIcon = DEVICE_ICONS[label.kind];
+const addUnique = <T,>(list: T[], value: T): void => {
+  if (!list.includes(value)) {
+    list.push(value);
+  }
+};
+
+// Two tabs on one device are one machine on the network: one line, both roles.
+function machinesOf(peers: readonly Peer[]): Machine[] {
+  const machines = new Map<string, Machine>();
+  for (const peer of peers) {
+    const label = deviceLabel(peer.device);
+    const machine = machines.get(peer.ip) ?? {
+      ip: peer.ip,
+      roles: [],
+      names: [],
+      icon: DEVICE_ICONS[label.kind],
+      you: false,
+    };
+    addUnique(machine.roles, peer.role);
+    addUnique(machine.names, label.name);
+    machine.you ||= peer.you;
+    machines.set(peer.ip, machine);
+  }
+
+  return [...machines.values()].map((machine) => ({
+    ...machine,
+    roles: [...machine.roles].sort((first, second) => ROLE_ORDER.indexOf(first) - ROLE_ORDER.indexOf(second)),
+  }));
+}
+
+const pagesText = (machine: Machine): string =>
+  `${machine.roles.map(roleText).join(' + ')} · ${machine.names.join(' / ')}`;
+
+interface NodeProps {
+  icon: LucideIcon;
+  ip: string;
+  detail: string;
+  role?: PeerRole;
+  you: boolean;
+}
+
+function NetworkNode({ icon: Icon, ip, detail, role, you }: Readonly<NodeProps>): ReactNode {
+  const classes = ['node', role && `role-${role}`, you && 'you'].filter(Boolean).join(' ');
 
   return (
-    <li className={`node role-${peer.role}${peer.you ? ' you' : ''}`}>
+    <li className={classes}>
       <span className="node-icon" aria-hidden="true">
-        <DeviceIcon className="icon" />
+        <Icon className="icon" />
       </span>
       <span className="node-text">
-        <strong>{peer.ip}</strong>
-        <span>
-          {roleText(peer.role)} · {label.name}
-        </span>
+        <strong>{ip}</strong>
+        <span>{detail}</span>
       </span>
-      {peer.you && <span className="badge">{t('you')}</span>}
+      {you && <span className="badge">{t('you')}</span>}
     </li>
   );
 }
 
-// Who is where on the network: the router, this PC (the server), the camera, every open page, and "you".
+// Who is where on the network, one line per machine: the router, this PC (with any page open on it), the rest.
 export function NetworkPanel({ network, receivedAt }: Readonly<NetworkPanelProps>): ReactNode {
   const secondsLeft = useCountdown(network.pairing.secondsLeft, receivedAt);
-  const youAreTheServer = network.you === network.server;
+  const machines = machinesOf(network.peers);
+  const onThePc = machines.find((machine) => machine.ip === network.server);
+  const others = machines.filter((machine) => machine !== onThePc);
+  const pcDetail = [t('PC (server and webcam)'), onThePc && pagesText(onThePc)].filter(Boolean).join(' · ');
 
   return (
     <aside className="network-panel" aria-label={t('Network')}>
       <RetroWindow title={t('Network')} icon={Network} tone="blue">
-        <div className="network-hub">
-          <span className="node">
-            <span className="node-icon" aria-hidden="true">
-              <Router className="icon" />
-            </span>
-            <span className="node-text">
-              <strong>{network.router ?? '?'}</strong>
-              <span>{t('router')}</span>
-            </span>
-          </span>
-          <span className={`node${youAreTheServer ? ' you' : ''}`}>
-            <span className="node-icon" aria-hidden="true">
-              <Monitor className="icon" />
-            </span>
-            <span className="node-text">
-              <strong>{network.server}</strong>
-              <span>{t('PC (server and webcam)')}</span>
-            </span>
-            {youAreTheServer && <span className="badge">{t('you')}</span>}
-          </span>
-        </div>
-        <ul className="network-peers" aria-label={t('Open pages')}>
-          {network.peers.map((peer, index) => (
-            <PeerNode key={`${peer.ip}-${index}`} peer={peer} />
+        <ul className="network-nodes">
+          <NetworkNode icon={Router} ip={network.router ?? '?'} detail={t('router')} you={false} />
+          <NetworkNode
+            icon={Monitor}
+            ip={network.server}
+            detail={pcDetail}
+            role={onThePc?.roles[0]}
+            you={network.you === network.server || onThePc?.you === true}
+          />
+          {others.map((machine) => (
+            <NetworkNode
+              key={machine.ip}
+              icon={machine.icon}
+              ip={machine.ip}
+              detail={pagesText(machine)}
+              role={machine.roles[0]}
+              you={machine.you}
+            />
           ))}
         </ul>
         <p className="hint pairing-code">

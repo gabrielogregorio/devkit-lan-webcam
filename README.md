@@ -71,8 +71,10 @@ with camera access is enough.
 - **Network panel on every page:** the router, this PC, the camera, every open page with its role,
   and which one is you.
 - **The preview is the canvas that is sent:** what you see on the device is exactly what the PC gets.
-- **Language:** the page follows the browser language. A `pt*` language shows Brazilian Portuguese,
-  anything else shows English. Force one with `?lang=en` or `?lang=pt-BR` in the address.
+- **Language:** English, Brazilian Portuguese, Spanish, French, Chinese (simplified), Hindi and Japanese.
+  Pick one in the menu at the top of every page: it switches at once, without reloading (a camera that is
+  streaming keeps going), and this browser remembers it. Without a choice the page follows the browser
+  language, else English. Force one with `?lang=` (`en`, `pt-BR`, `es`, `fr`, `zh`, `hi`, `ja`).
 
 Built and tested on Ubuntu 24.04.
 
@@ -185,7 +187,7 @@ uv lock && uv export --frozen --no-dev --no-emit-project -o requirements.txt
 | **Break tests bite** | `tests/backend/plugin_without_encryption.py` | the break tests run again with the encryption turned off and must fail, so they cannot pass by accident |
 | **Crypto vectors** | `tests/backend/crypto_vectors.py` → `web/src/lib/crypto/vectors.json` | fixed-input outputs of the server's SPAKE2, sealed credential and session handshake; the browser tests must produce the same bytes |
 | **Web lint** | `eslint.config.mjs`, `tsconfig.json`, `.prettierrc` | ESLint (typescript-eslint with types, react, react-hooks, jsx-a11y, sonarjs), strict TypeScript, Prettier |
-| **Web unit** | `web/src/**/*.test.{ts,tsx}` (Vitest + Testing Library) | 100% coverage gate: the browser crypto against the server vectors, the encrypted connection and the session store against a fake server doing a real handshake, the pairing client, storage, framing math, gestures, routes, server messages, device labels, quality settings, every page text, the i18n catalog (every `t('…')` has its pt-BR line with the same `{placeholders}`, none unused), and the pages: pairing form, network panel, request list, quality controls, navigation, the Watch page states |
+| **Web unit** | `web/src/**/*.test.{ts,tsx}` (Vitest + Testing Library) | 100% coverage gate: the browser crypto against the server vectors, the encrypted connection and the session store against a fake server doing a real handshake, the pairing client, storage, framing math, gestures, routes, server messages, device labels, quality settings, every page text, the i18n catalogs (every `t('…')` has its line in each of the 6 translations with the same `{placeholders}`, none unused), the language menu, and the pages: pairing form, network panel, request list, quality controls, navigation, the Watch page states |
 | **Launcher** | `tests/launcher/test_launcher.sh` | `run.sh` in a sandbox with stubs: status, missing device, `exclusive_caps` warning, single instance, stop, usage, builds the web app when it is missing, says how to install Node when it cannot |
 | **E2E** | `tests/e2e/` (Playwright) | the real `server.py` serving the real build, with its own config folder and ffmpeg swapped for `cat`; Chromium with a fake camera, every device in its own browser context pairing with the code from `pairing.py`: a wrong code does not pair, preview and camera switching, encrypted frames decrypted on the server at the chosen resolution, navigation, and over **plain HTTP on the LAN address** (no `crypto.subtle`) two devices ask to watch and only the one the camera approves gets the picture, until it is revoked; a whole watch session on plain HTTP recorded by a relay (`wire-tap.mjs`) carries encrypted frames and no JPEG, app message or device secret |
 | **Device** | `tests/backend/test_device_integration.py` | opt-in: `/dev/video10` exists and is readable and writable |
@@ -379,7 +381,7 @@ model, wire contents and every break test: **[docs/security.md](docs/security.md
 | `web/src/lib/view.ts`, `gestures.ts` | pure framing math (zoom/pan/rotation/fit) and drag/pinch tracking |
 | `web/src/lib/router.ts`, `components/NavLink.tsx` | the three routes and the links that move between them without reloading |
 | `web/src/lib/protocol.ts` | the only reader of the server's JSON messages |
-| `web/src/lib/i18n.ts`, `streamText.ts`, `watchText.ts` | language detection, the pt-BR catalog and every status text as a pure function |
+| `web/src/lib/i18n.ts`, `locales/`, `streamText.ts`, `watchText.ts` | language detection and switching, one catalog per language and every status text as a pure function |
 | `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `.nvmrc` | Node 24, pnpm pinned with its hash, locked packages, 3-day wait for new versions, install scripts blocked |
 | `vite.config.mts`, `tsconfig.json`, `eslint.config.mjs`, `.prettierrc` | build, unit tests and coverage gate, strict TypeScript, lint, format |
 | `setup.sh` | first install (apt + venv + web app build + certificate + module) |
@@ -394,8 +396,9 @@ model, wire contents and every break test: **[docs/security.md](docs/security.md
 | `docs/` | `security.md` (threat model, what crosses the wire, break tests) and the README images, saved without metadata |
 
 Adding page text: write it in English as `t('…')` (with a literal string, so the test can find it) and
-add the pt-BR line to `PT_BR` in `web/src/lib/i18n.ts`. `i18n.test.ts` fails if it is missing, if the
-`{placeholders}` differ or if a pt-BR line is no longer used. Terminal output is English only.
+add its line to every catalog in `web/src/lib/locales/` (pt-BR, es, fr, zh, hi, ja). `i18n.test.ts` fails
+if a line is missing in any of them, if the `{placeholders}` differ or if a line is no longer used. A new
+language is one catalog file plus one entry in `LANGUAGES` and `CATALOGS`. Terminal output is English only.
 
 ## Dependencies
 

@@ -23,6 +23,7 @@ export class FakeCameraStreamer {
   readonly stop = vi.fn();
   readonly destroy = vi.fn();
   readonly listCameras = vi.fn();
+  readonly refreshStatus = vi.fn();
 
   constructor(
     readonly canvas: HTMLCanvasElement,

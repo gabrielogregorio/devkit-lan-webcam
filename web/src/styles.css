@@ -137,6 +137,7 @@ h2 {
 .site-nav {
   display: flex;
   gap: 10px;
+  margin-left: auto;
 }
 
 .site-nav a {
@@ -156,6 +157,88 @@ h2 {
 .site-nav a:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* The language menu: a small select window with the languages icon. */
+.language-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 0 8px;
+  color: var(--ink);
+  border: var(--border);
+  background: var(--yellow);
+  box-shadow: var(--shadow-small);
+}
+
+.language-picker select {
+  flex: none;
+  padding: 7px 30px 7px 6px;
+  border-width: 0 0 0 2px;
+  box-shadow: none;
+}
+
+/* ---------- scrollbar: an outlined track with a pink thumb and square ends ---------- */
+html {
+  scrollbar-color: var(--pink) var(--paper-sunken);
+}
+
+::-webkit-scrollbar {
+  width: 18px;
+  height: 18px;
+}
+
+::-webkit-scrollbar-track {
+  border-left: var(--border);
+  background: repeating-linear-gradient(45deg, var(--paper-sunken) 0 4px, var(--paper) 4px 8px);
+}
+
+::-webkit-scrollbar-thumb {
+  border: var(--border);
+  background: var(--pink);
+  box-shadow: inset -3px -3px 0 rgb(35 37 94 / 35%);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--violet);
+}
+
+::-webkit-scrollbar-button:single-button {
+  display: block;
+  height: 18px;
+  border: var(--border);
+  background-color: var(--teal);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 8px 6px;
+}
+
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+  background-image:
+    linear-gradient(to bottom right, transparent 50%, var(--ink) 50%),
+    linear-gradient(to bottom left, transparent 50%, var(--ink) 50%);
+  background-size:
+    4px 6px,
+    4px 6px;
+  background-position:
+    calc(50% - 2px) center,
+    calc(50% + 2px) center;
+}
+
+::-webkit-scrollbar-button:single-button:vertical:increment {
+  background-image:
+    linear-gradient(to top right, transparent 50%, var(--ink) 50%),
+    linear-gradient(to top left, transparent 50%, var(--ink) 50%);
+  background-size:
+    4px 6px,
+    4px 6px;
+  background-position:
+    calc(50% - 2px) center,
+    calc(50% + 2px) center;
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--paper-sunken);
 }
 
 /* ---------- layout ---------- */
@@ -662,7 +745,7 @@ input[type='range']::-moz-range-thumb {
 
 /* ---------- requests and network ---------- */
 .requests,
-.network-peers {
+.network-nodes {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -750,12 +833,6 @@ input[type='range']::-moz-range-thumb {
 .network-panel {
   width: 100%;
   max-width: 820px;
-}
-
-.network-hub {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
 }
 
 .pairing-code {

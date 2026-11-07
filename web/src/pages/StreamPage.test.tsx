@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { setLanguage } from '@/lib/i18n';
 import { loadQuality } from '@/lib/quality';
 import { StreamPage } from '@/pages/StreamPage';
 import { FakeCameraStreamer } from '@/testDoubles';
@@ -119,6 +120,19 @@ describe('StreamPage', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Opening camera…');
     expect(screen.getByRole('status')).toHaveClass('warn');
+  });
+
+  it('writes the status again when the language changes', () => {
+    const { streamer } = renderPage();
+
+    expect(screen.getByRole('status')).toHaveTextContent('Tap "Start streaming"');
+
+    act(() => setLanguage('es'));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Toca "Iniciar transmisión"');
+    expect(streamer.refreshStatus).toHaveBeenCalled();
+
+    act(() => setLanguage('en'));
   });
 
   it('framing buttons update the view the streamer draws', async () => {

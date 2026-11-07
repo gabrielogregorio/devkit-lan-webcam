@@ -59,6 +59,7 @@ export class CameraStreamer {
   private streaming = false;
   private encodingFrame = false;
   private openingCamera = false;
+  private lastStatus: (() => StatusMessage) | null = null;
   private view: ViewState = resetView();
   private quality: QualitySettings = { ...DEFAULT_QUALITY };
   private readonly frameSizes: number[] = [];
@@ -110,14 +111,14 @@ export class CameraStreamer {
 
   handleServerMessage(message: ServerMessage): void {
     if (message.type === 'camera-stopped' && this.streaming) {
-      const reason =
-        message.reason === 'taken'
-          ? this.t('Another device started streaming.')
-          : this.t('The PC webcam stopped taking frames.');
-      this.stop(reason, false);
+      const taken = message.reason === 'taken';
+      this.stop(
+        () => (taken ? this.t('Another device started streaming.') : this.t('The PC webcam stopped taking frames.')),
+        false,
+      );
     }
     if (message.type === 'camera-error' && this.streaming) {
-      this.stop(this.t('The PC could not start the webcam (ffmpeg).'), false);
+      this.stop(() => this.t('The PC could not start the webcam (ffmpeg).'), false);
     }
   }
 
@@ -126,7 +127,7 @@ export class CameraStreamer {
       return;
     }
     this.openingCamera = true;
-    this.setStatus(this.t('Opening camera…'), 'warn');
+    this.setStatus(() => this.t('Opening camera…'), 'warn');
     try {
       this.stopMediaStream();
       await delay(CAMERA_RELEASE_DELAY_MS);
@@ -140,13 +141,16 @@ export class CameraStreamer {
         if (reverted) {
           await this.attachStream(reverted);
         }
-        this.callbacks.onStatus(cameraFailureStatus(this.t, errorReason(error), reverted !== null));
+        const reason = errorReason(error);
+        this.show(() => cameraFailureStatus(this.t, reason, reverted !== null));
 
         return;
       }
       await this.attachStream(stream);
       await this.refreshCameras();
-      this.callbacks.onStatus(previewStatus(this.t, this.activeCameraLabel(), this.streaming));
+      const label = this.activeCameraLabel();
+      const streaming = this.streaming;
+      this.show(() => previewStatus(this.t, label, streaming));
     } finally {
       this.openingCamera = false;
     }
@@ -160,22 +164,23 @@ export class CameraStreamer {
       await this.openCamera();
     }
     if (!this.mediaStream) {
-      this.setStatus(this.t('No camera. Allow access and tap Back/Front'), 'err');
+      this.setStatus(() => this.t('No camera. Allow access and tap Back/Front'), 'err');
 
       return;
     }
     if (!this.transport.sendJson(CAMERA_START)) {
-      this.setStatus(this.t('Not connected to the PC yet.'), 'err');
+      this.setStatus(() => this.t('Not connected to the PC yet.'), 'err');
 
       return;
     }
     this.streaming = true;
     this.callbacks.onStreamingChange(true);
-    this.callbacks.onStatus(previewStatus(this.t, this.activeCameraLabel(), true));
+    const label = this.activeCameraLabel();
+    this.show(() => previewStatus(this.t, label, true));
     this.restartSendTimer();
   }
 
-  stop(reason: string = this.t('Stopped'), tellServer = true): void {
+  stop(reason: () => string = () => this.t('Stopped'), tellServer = true): void {
     if (this.streaming && tellServer) {
       this.transport.sendJson(CAMERA_STOP);
     }
@@ -218,8 +223,21 @@ export class CameraStreamer {
     this.sendTimer = setInterval(() => this.sendFrame(), MILLISECONDS_PER_SECOND / this.quality.fps);
   }
 
-  private setStatus(text: string, kind: StatusKind): void {
-    this.callbacks.onStatus({ text, kind });
+  /** Shows the last status again in the language picked now. */
+  refreshStatus(): void {
+    if (this.lastStatus) {
+      this.callbacks.onStatus(this.lastStatus());
+    }
+  }
+
+  // Every status is kept as a recipe, not as text, so a language change can show it again translated.
+  private show(build: () => StatusMessage): void {
+    this.lastStatus = build;
+    this.callbacks.onStatus(build());
+  }
+
+  private setStatus(text: () => string, kind: StatusKind): void {
+    this.show(() => ({ text: text(), kind }));
   }
 
   private drawFrame(): void {
@@ -325,7 +343,8 @@ export class CameraStreamer {
           label: device.label || this.t('Camera {number}', { number: index + 1 }),
         }));
       this.callbacks.onCamerasChange(cameras);
-      this.callbacks.onStatus(cameraListStatus(this.t, cameras.length, this.streaming));
+      const streaming = this.streaming;
+      this.show(() => cameraListStatus(this.t, cameras.length, streaming));
     } catch {
       // Listing is best effort: without permission the list stays empty and the Back/Front buttons still work.
     }
