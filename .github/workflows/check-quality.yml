@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   lint:
-    name: Lint (ruff + shellcheck + node)
+    name: Lint (ruff + shellcheck + web)
     timeout-minutes: 5
     runs-on: ubuntu-24.04
     steps:
@@ -24,8 +24,11 @@ jobs:
       - name: ShellCheck
         run: shellcheck --severity=warning ./*.sh tests/launcher/*.sh
 
-      - name: JavaScript syntax
-        run: for f in ./*.js tests/*/*.mjs; do node --check "$f"; done
+      - name: Web app (prettier, eslint, tsc)
+        run: pnpm run format:check && pnpm run lint
+
+      - name: E2E script syntax
+        run: for f in tests/e2e/*.mjs; do node --check "$f"; done
 
       - name: Scripts are executable in git
         run: |
@@ -56,3 +59,13 @@ jobs:
 
       - name: Python packages (versions from requirements-dev.txt)
         run: pipx run pip-audit==2.10.1 --no-deps --disable-pip -r requirements-dev.txt
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: npm packages (zero in production, zero high in the tools)
+        run: |
+          corepack enable
+          pnpm audit --prod
+          pnpm audit --audit-level high

@@ -77,9 +77,9 @@ jobs:
               [(f) => f.endsWith('.md'), 'documentation'],
               [(f) => f.startsWith('tests/') || f === 'run-tests.sh', 'tests'],
               [(f) => f.startsWith('.github/'), 'ci'],
-              [(f) => f === 'i18n.js', 'i18n'],
+              [(f) => f === 'web/src/lib/i18n.ts', 'i18n'],
               [(f) => f === 'server.py', 'backend'],
-              [(f) => f === 'index.html' || f === 'view.js', 'frontend'],
+              [(f) => f.startsWith('web/') || f === 'package.json' || f === 'pnpm-lock.yaml', 'frontend'],
               [(f) => f.endsWith('.sh') && !f.startsWith('tests/') && f !== 'run-tests.sh', 'scripts'],
             ];
             for (const f of files) {

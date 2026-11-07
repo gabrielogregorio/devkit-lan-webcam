@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   unit:
-    name: Unit Tests (backend, frontend, launcher)
+    name: Unit Tests (backend, web app, launcher)
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     steps:
