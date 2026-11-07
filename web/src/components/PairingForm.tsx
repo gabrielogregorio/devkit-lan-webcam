@@ -1,4 +1,5 @@
 import { useState, type ReactNode, type SubmitEvent } from 'react';
+import { RetroWindow } from '@/components/RetroWindow';
 import { useSessionStore } from '@/lib/SessionContext';
 import { t } from '@/lib/i18n';
 import { isValidCode, normalizeCode, type PairingOutcome } from '@/lib/pairingClient';
@@ -37,34 +38,35 @@ export function PairingForm(): ReactNode {
 
   return (
     <section className="page pairing" aria-labelledby="pairing-title">
-      <h1 id="pairing-title">{t('🔐 Pair this device')}</h1>
-      <p className="lead">
-        {t('Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.')}
-      </p>
-      <form className="pairing-form" onSubmit={submit}>
-        <label htmlFor="pairingCode">{t('Pairing code')}</label>
-        <input
-          id="pairingCode"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={7}
-          value={typed}
-          onChange={(event) => setTyped(event.target.value)}
-        />
-        <button type="submit" className="primary" disabled={!isValidCode(code) || state.kind === 'busy'}>
-          {t('Pair')}
-        </button>
-      </form>
-      {state.kind === 'result' && (
-        <p role="alert" className={state.outcome.type === 'paired' ? 'ok' : 'err'}>
-          {outcomeText(state.outcome)}
+      <RetroWindow title={t('🔐 Pair this device')} titleId="pairing-title" tone="teal" className="dialog">
+        <p className="lead">
+          {t('Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.')}
         </p>
-      )}
-      <p className="hint">
-        {t(
-          'Pairing happens once per browser: the code never travels over the network, and everything after it is encrypted, even over plain HTTP.',
+        <form className="pairing-form" onSubmit={submit}>
+          <label htmlFor="pairingCode">{t('Pairing code')}</label>
+          <input
+            id="pairingCode"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={7}
+            value={typed}
+            onChange={(event) => setTyped(event.target.value)}
+          />
+          <button type="submit" className="primary" disabled={!isValidCode(code) || state.kind === 'busy'}>
+            {t('Pair')}
+          </button>
+        </form>
+        {state.kind === 'result' && (
+          <p role="alert" className={state.outcome.type === 'paired' ? 'ok' : 'err'}>
+            {outcomeText(state.outcome)}
+          </p>
         )}
-      </p>
+        <p className="hint">
+          {t(
+            'Pairing happens once per browser: the code never travels over the network, and everything after it is encrypted, even over plain HTTP.',
+          )}
+        </p>
+      </RetroWindow>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { RetroWindow } from '@/components/RetroWindow';
 import { deviceLabel, DEVICE_ICONS } from '@/lib/deviceLabel';
 import { t } from '@/lib/i18n';
 import type { NetworkPanelData, Peer, PeerRole } from '@/lib/protocol';
@@ -51,38 +52,40 @@ export function NetworkPanel({ network, receivedAt }: Readonly<NetworkPanelProps
 
   return (
     <aside className="network-panel" aria-label={t('Network')}>
-      <div className="network-hub">
-        <span className="node">
-          <span className="node-icon" aria-hidden="true">
-            📶
+      <RetroWindow title={'C:\\network\\lan.exe'} tone="blue">
+        <div className="network-hub">
+          <span className="node">
+            <span className="node-icon" aria-hidden="true">
+              📶
+            </span>
+            <span className="node-text">
+              <strong>{network.router ?? '?'}</strong>
+              <span>{t('router')}</span>
+            </span>
           </span>
-          <span className="node-text">
-            <strong>{network.router ?? '?'}</strong>
-            <span>{t('router')}</span>
+          <span className={`node${youAreTheServer ? ' you' : ''}`}>
+            <span className="node-icon" aria-hidden="true">
+              🖥️
+            </span>
+            <span className="node-text">
+              <strong>{network.server}</strong>
+              <span>{t('PC (server and webcam)')}</span>
+            </span>
+            {youAreTheServer && <span className="badge">{t('you')}</span>}
           </span>
-        </span>
-        <span className={`node${youAreTheServer ? ' you' : ''}`}>
-          <span className="node-icon" aria-hidden="true">
-            🖥️
-          </span>
-          <span className="node-text">
-            <strong>{network.server}</strong>
-            <span>{t('PC (server and webcam)')}</span>
-          </span>
-          {youAreTheServer && <span className="badge">{t('you')}</span>}
-        </span>
-      </div>
-      <ul className="network-peers" aria-label={t('Open pages')}>
-        {network.peers.map((peer, index) => (
-          <PeerNode key={`${peer.ip}-${index}`} peer={peer} />
-        ))}
-      </ul>
-      <p className="hint pairing-code">
-        {t('Code to pair another device: {code} (changes in {time})', {
-          code: formatPairingCode(network.pairing.code),
-          time: clockLabel(secondsLeft),
-        })}
-      </p>
+        </div>
+        <ul className="network-peers" aria-label={t('Open pages')}>
+          {network.peers.map((peer, index) => (
+            <PeerNode key={`${peer.ip}-${index}`} peer={peer} />
+          ))}
+        </ul>
+        <p className="hint pairing-code">
+          {t('Code to pair another device: {code} (changes in {time})', {
+            code: formatPairingCode(network.pairing.code),
+            time: clockLabel(secondsLeft),
+          })}
+        </p>
+      </RetroWindow>
     </aside>
   );
 }

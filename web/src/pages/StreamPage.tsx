@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { QualityControls } from '@/components/QualityControls';
 import { RequestList } from '@/components/RequestList';
+import { RetroWindow } from '@/components/RetroWindow';
 import { CameraStreamer, type CameraOption } from '@/lib/cameraStreamer';
 import { GestureTracker, type ScreenPoint } from '@/lib/gestures';
 import { t } from '@/lib/i18n';
@@ -116,20 +117,23 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
 
   return (
     <section className="page stream" aria-labelledby="stream-title" hidden={hidden}>
-      <h1 id="stream-title">{t('📷 Camera → PC webcam')}</h1>
+      <RetroWindow title={t('📷 Camera → PC webcam')} titleId="stream-title" className="preview-window">
+        <canvas
+          id="preview"
+          ref={canvasRef}
+          role="img"
+          aria-label={t('Camera preview, exactly what the PC gets')}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+        />
+        <div id="status" role="status" className={`status ${status.kind}`}>
+          {status.text}
+        </div>
+      </RetroWindow>
 
-      <canvas
-        id="preview"
-        ref={canvasRef}
-        role="img"
-        aria-label={t('Camera preview, exactly what the PC gets')}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-      />
-
-      <div className="panel">
+      <RetroWindow title={'C:\\camera\\controls.exe'} tone="teal" className="panel">
         <div className="zoomrow">
           <label htmlFor="zoom">🔍 {t('Zoom')}</label>
           <input
@@ -197,19 +201,17 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
           </button>
         </div>
         <QualityControls settings={quality} averageFrameBytes={frameSize} onChange={changeQuality} />
-        <section className="who-watches" aria-labelledby="who-watches-title">
-          <h2 id="who-watches-title">{t('👀 Who may watch')}</h2>
+      </RetroWindow>
+
+      <section className="who-watches" aria-labelledby="who-watches-title">
+        <RetroWindow title={t('👀 Who may watch')} titleId="who-watches-title" level={2} tone="pink">
           {streaming ? (
             <RequestList requests={session.requests} onDecide={(id, decision) => store.decide(id, decision)} />
           ) : (
             <p className="hint">{t('Start streaming to see and approve who asks to watch.')}</p>
           )}
-        </section>
-      </div>
-
-      <div id="status" role="status" className={`status ${status.kind}`}>
-        {status.text}
-      </div>
+        </RetroWindow>
+      </section>
       <p className="hint">
         {t(
           'On the preview: drag to move, pinch (2 fingers) to zoom. The camera becomes the "LAN Webcam" webcam on the PC. Keep this page open and the screen on.',
