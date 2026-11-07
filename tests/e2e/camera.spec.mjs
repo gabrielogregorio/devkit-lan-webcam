@@ -138,11 +138,12 @@ test('streaming sends encrypted frames that reach the PC webcam, at the chosen q
   });
 });
 
-test('the home page links both pages and the navigation moves between them', async () => {
+test('the home page is the network panel and the navigation moves between the pages', async () => {
   await withBrowser(async (openDevice) => {
     const page = await openDevice();
     await pairAndOpen(page, BASE_URL);
-    await page.getByRole('link', { name: /Watch the camera/ }).click();
+    await page.getByRole('heading', { level: 1, name: 'Network' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+    await page.getByRole('navigation', { name: 'Pages' }).getByRole('link', { name: 'Watch' }).click();
     await page.getByRole('heading', { name: 'Watching the LAN Webcam' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
     assert.equal(new URL(page.url()).pathname, '/watch');
 

@@ -47,9 +47,13 @@ html {
     100% 100%;
 }
 
+/* The top gap is padding inside body, not the header's margin: a margin there leaks out of body and adds
+   12px to a full-height page, which then scrolls with nothing to scroll. dvh follows the phone's address bar. */
 body {
   margin: 0;
+  padding-top: 12px;
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--font);
   font-size: 14px;
   color: var(--ink);
@@ -116,7 +120,7 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin: 12px auto 0;
+  margin: 0 auto;
   max-width: var(--wide-width);
   width: calc(100% - 24px);
   padding: 8px 10px;
@@ -272,10 +276,6 @@ html {
   max-width: var(--wide-width);
 }
 
-.home > .window {
-  max-width: 820px;
-}
-
 /* On a wide screen the camera page puts the preview beside its controls. */
 @media (width >= 960px) {
   .page.stream {
@@ -378,7 +378,6 @@ html {
 
 .window-title,
 .site-nav a,
-.card-title,
 .zoomrow label,
 button {
   display: inline-flex;
@@ -387,8 +386,7 @@ button {
   gap: 8px;
 }
 
-.window-title,
-.card-title {
+.window-title {
   justify-content: flex-start;
 }
 
@@ -638,52 +636,6 @@ input[type='range']::-moz-range-thumb {
 
 .dialog .ok .alert-icon {
   fill: var(--teal);
-}
-
-/* ---------- home ---------- */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 18px;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0 0 14px;
-  text-decoration: none;
-  border: var(--border);
-  background: var(--cream);
-  box-shadow: var(--shadow);
-}
-
-.card > * {
-  padding: 0 14px;
-}
-
-.card-title {
-  padding: 6px 14px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  border-bottom: var(--border);
-  background: var(--pink);
-}
-
-.card + .card .card-title {
-  background: var(--violet);
-}
-
-.card span:last-child {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--ink-soft);
-}
-
-.card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--ink);
 }
 
 /* ---------- pairing ---------- */

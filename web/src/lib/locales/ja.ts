@@ -7,11 +7,6 @@ export const JA: Readonly<Record<string, string>> = {
   Controls: 'コントロール',
   Stream: '配信',
   Watch: '視聴',
-  'Any camera on your network becomes a webcam on the PC.': 'ネットワーク上のどのカメラも PC の Web カメラになります。',
-  'Stream this camera': 'このカメラを配信',
-  'Watch the camera': 'カメラを視聴',
-  'Open the Stream page on the phone and the Watch page on the PC: both are linked at the top of every page.':
-    'スマホで「配信」ページを、PC で「視聴」ページを開いてください。どちらも各ページの上部にリンクがあります。',
   'Camera → PC webcam': 'カメラ → PC の Web カメラ',
   'Camera preview, exactly what the PC gets': 'カメラのプレビュー（PC が受け取る映像そのまま）',
   Zoom: 'ズーム',
@@ -50,10 +45,6 @@ export const JA: Readonly<Record<string, string>> = {
   'Lost the connection to the PC. Trying again…': 'PC との接続が切れました。再試行中…',
   'Reconnecting…': '再接続中…',
   'Connecting…': '接続中…',
-  'Use the camera of this device as the "LAN Webcam" on the PC, and approve who may watch it.':
-    'この端末のカメラを PC の「LAN Webcam」として使い、視聴できる人を承認します。',
-  'Ask to watch the camera another device is streaming; it approves your code.':
-    '別の端末が配信しているカメラの視聴をリクエストします。相手があなたのコードを承認します。',
   'Not connected to the PC yet.': 'まだ PC に接続されていません。',
   'Another device started streaming.': '別の端末が配信を始めました。',
   'The PC webcam stopped taking frames.': 'PC の Web カメラが映像を受け取らなくなりました。',

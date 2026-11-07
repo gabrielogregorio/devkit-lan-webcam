@@ -7,6 +7,8 @@ import type { NetworkPanelData, Peer, PeerRole } from '@/lib/protocol';
 
 interface NetworkPanelProps {
   network: NetworkPanelData;
+  /** On the home page the panel is the page: its title becomes the page heading. */
+  heading?: boolean;
 }
 
 // The most telling role first: it also picks the colour of the line.
@@ -95,7 +97,7 @@ function NetworkNode({ icon: Icon, ip, detail, role, you }: Readonly<NodeProps>)
 }
 
 // Who is where on the network, one line per machine: the router, this PC (with any page open on it), the rest.
-export function NetworkPanel({ network }: Readonly<NetworkPanelProps>): ReactNode {
+export function NetworkPanel({ network, heading = false }: Readonly<NetworkPanelProps>): ReactNode {
   const machines = machinesOf(network.peers);
   const onThePc = machines.find((machine) => machine.ip === network.server);
   const others = machines.filter((machine) => machine !== onThePc);
@@ -103,7 +105,7 @@ export function NetworkPanel({ network }: Readonly<NetworkPanelProps>): ReactNod
 
   return (
     <aside className="network-panel" aria-label={t('Network')}>
-      <RetroWindow title={t('Network')} icon={Network} tone="blue">
+      <RetroWindow title={t('Network')} icon={Network} tone="blue" titleId={heading ? 'network-title' : undefined}>
         <ul className="network-nodes">
           <NetworkNode icon={Router} ip={network.router ?? '?'} detail={t('router')} you={false} />
           <NetworkNode

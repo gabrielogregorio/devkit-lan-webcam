@@ -32,12 +32,18 @@ describe('App', () => {
     expect(screen.getByRole('navigation', { name: 'Pages' })).toBeVisible();
   });
 
-  it('starts on the home page with both pages linked', () => {
-    renderPaired();
+  it('starts on the home page, which is only the network panel', () => {
+    const server = renderPaired();
 
-    expect(screen.getByRole('heading', { level: 1, name: 'LAN Webcam' })).toBeVisible();
-    expect(screen.getByRole('link', { name: /Stream this camera/ })).toHaveAttribute('href', '/stream');
-    expect(screen.getByRole('link', { name: /Watch the camera/ })).toHaveAttribute('href', '/watch');
+    expect(screen.getByText('Connecting…')).toBeVisible();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+
+    act(() => server.pushJson(NETWORK_MESSAGE));
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Network' })).toBeVisible();
+    expect(screen.queryByText('Connecting…')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Stream' })).toHaveAttribute('href', '/stream');
+    expect(screen.getByRole('link', { name: 'Watch' })).toHaveAttribute('href', '/watch');
   });
 
   it('shows the network panel on every page once the PC sends it', async () => {

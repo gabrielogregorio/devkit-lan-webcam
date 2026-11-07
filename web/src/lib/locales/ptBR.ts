@@ -7,11 +7,6 @@ export const PT_BR: Readonly<Record<string, string>> = {
   Controls: 'Controles',
   Stream: 'Transmitir',
   Watch: 'Assistir',
-  'Any camera on your network becomes a webcam on the PC.': 'Qualquer câmera da sua rede vira webcam no PC.',
-  'Stream this camera': 'Transmitir esta câmera',
-  'Watch the camera': 'Assistir a câmera',
-  'Open the Stream page on the phone and the Watch page on the PC: both are linked at the top of every page.':
-    'Abra a página Transmitir no celular e a página Assistir no PC: as duas ficam no topo de toda página.',
   'Camera → PC webcam': 'Câmera → webcam do PC',
   'Camera preview, exactly what the PC gets': 'Prévia da câmera, exatamente o que o PC recebe',
   Zoom: 'Zoom',
@@ -49,10 +44,6 @@ export const PT_BR: Readonly<Record<string, string>> = {
   'Lost the connection to the PC. Trying again…': 'Perdi a conexão com o PC. Tentando de novo…',
   'Reconnecting…': 'Reconectando…',
   'Connecting…': 'Conectando…',
-  'Use the camera of this device as the "LAN Webcam" on the PC, and approve who may watch it.':
-    'Use a câmera deste aparelho como a "LAN Webcam" no PC, e aprove quem pode assistir.',
-  'Ask to watch the camera another device is streaming; it approves your code.':
-    'Peça pra assistir a câmera que outro aparelho está transmitindo; ele aprova o seu código.',
   'Not connected to the PC yet.': 'Ainda sem conexão com o PC.',
   'Another device started streaming.': 'Outro aparelho começou a transmitir.',
   'The PC webcam stopped taking frames.': 'A webcam do PC parou de receber imagens.',

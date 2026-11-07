@@ -53,7 +53,7 @@ with camera access is enough.
 
   | Page | Address | What |
   |---|---|---|
-  | Home | `/` | what the app does and a link to each page |
+  | Home | `/` | the network: the router, this PC and every device, one line each |
   | Stream | `/stream` | streams this device's camera to the PC |
   | Watch | `/watch` | shows live the camera another device is streaming |
 

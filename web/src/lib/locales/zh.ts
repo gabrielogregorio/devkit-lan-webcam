@@ -7,11 +7,6 @@ export const ZH: Readonly<Record<string, string>> = {
   Controls: '控制',
   Stream: '推流',
   Watch: '观看',
-  'Any camera on your network becomes a webcam on the PC.': '你网络中的任何摄像头都能变成电脑上的网络摄像头。',
-  'Stream this camera': '推流这个摄像头',
-  'Watch the camera': '观看摄像头',
-  'Open the Stream page on the phone and the Watch page on the PC: both are linked at the top of every page.':
-    '在手机上打开“推流”页面，在电脑上打开“观看”页面：每个页面顶部都有这两个链接。',
   'Camera → PC webcam': '摄像头 → 电脑网络摄像头',
   'Camera preview, exactly what the PC gets': '摄像头预览，与电脑收到的画面完全一致',
   Zoom: '缩放',
@@ -48,10 +43,6 @@ export const ZH: Readonly<Record<string, string>> = {
   'Lost the connection to the PC. Trying again…': '与电脑的连接已断开。正在重试…',
   'Reconnecting…': '正在重新连接…',
   'Connecting…': '正在连接…',
-  'Use the camera of this device as the "LAN Webcam" on the PC, and approve who may watch it.':
-    '把这台设备的摄像头用作电脑上的“LAN Webcam”，并批准谁可以观看。',
-  'Ask to watch the camera another device is streaming; it approves your code.':
-    '请求观看另一台设备正在推流的摄像头；由它批准你的代码。',
   'Not connected to the PC yet.': '尚未连接到电脑。',
   'Another device started streaming.': '另一台设备开始推流了。',
   'The PC webcam stopped taking frames.': '电脑的网络摄像头不再接收画面。',

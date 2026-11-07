@@ -8,7 +8,6 @@ import { t, useLanguage } from '@/lib/i18n';
 import { ROUTES, useRoute } from '@/lib/router';
 import { SessionProvider, useSession } from '@/lib/SessionContext';
 import type { SessionStore } from '@/lib/sessionStore';
-import { HomePage } from '@/pages/HomePage';
 import { StreamPage } from '@/pages/StreamPage';
 import { WatchPage } from '@/pages/WatchPage';
 
@@ -56,11 +55,12 @@ function Shell(): ReactNode {
           <PairingForm />
         ) : (
           <>
-            {route === ROUTES.home && <HomePage />}
+            {/* The home page is the network: who is where, nothing else. */}
+            {route === ROUTES.home && !session.network && <p className="hint">{t('Connecting…')}</p>}
             {/* Always mounted: streaming from this device keeps going while you look at the other pages. */}
             <StreamPage hidden={route !== ROUTES.stream} />
             {route === ROUTES.watch && <WatchPage />}
-            {session.network && <NetworkPanel network={session.network} />}
+            {session.network && <NetworkPanel network={session.network} heading={route === ROUTES.home} />}
           </>
         )}
       </main>

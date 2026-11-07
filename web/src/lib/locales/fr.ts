@@ -7,12 +7,6 @@ export const FR: Readonly<Record<string, string>> = {
   Controls: 'Commandes',
   Stream: 'Diffuser',
   Watch: 'Regarder',
-  'Any camera on your network becomes a webcam on the PC.':
-    'N’importe quelle caméra de votre réseau devient une webcam sur le PC.',
-  'Stream this camera': 'Diffuser cette caméra',
-  'Watch the camera': 'Regarder la caméra',
-  'Open the Stream page on the phone and the Watch page on the PC: both are linked at the top of every page.':
-    'Ouvrez la page Diffuser sur le téléphone et la page Regarder sur le PC : les deux sont en haut de chaque page.',
   'Camera → PC webcam': 'Caméra → webcam du PC',
   'Camera preview, exactly what the PC gets': 'Aperçu de la caméra, exactement ce que reçoit le PC',
   Zoom: 'Zoom',
@@ -51,10 +45,6 @@ export const FR: Readonly<Record<string, string>> = {
   'Lost the connection to the PC. Trying again…': 'Connexion au PC perdue. Nouvelle tentative…',
   'Reconnecting…': 'Reconnexion…',
   'Connecting…': 'Connexion…',
-  'Use the camera of this device as the "LAN Webcam" on the PC, and approve who may watch it.':
-    'Utilisez la caméra de cet appareil comme « LAN Webcam » sur le PC et approuvez qui peut la regarder.',
-  'Ask to watch the camera another device is streaming; it approves your code.':
-    'Demandez à regarder la caméra diffusée par un autre appareil ; il approuve votre code.',
   'Not connected to the PC yet.': 'Pas encore connecté au PC.',
   'Another device started streaming.': 'Un autre appareil a commencé à diffuser.',
   'The PC webcam stopped taking frames.': 'La webcam du PC ne reçoit plus d’images.',

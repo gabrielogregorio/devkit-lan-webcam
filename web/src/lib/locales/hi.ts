@@ -7,11 +7,6 @@ export const HI: Readonly<Record<string, string>> = {
   Controls: 'नियंत्रण',
   Stream: 'स्ट्रीम करें',
   Watch: 'देखें',
-  'Any camera on your network becomes a webcam on the PC.': 'आपके नेटवर्क का कोई भी कैमरा PC पर वेबकैम बन जाता है।',
-  'Stream this camera': 'यह कैमरा स्ट्रीम करें',
-  'Watch the camera': 'कैमरा देखें',
-  'Open the Stream page on the phone and the Watch page on the PC: both are linked at the top of every page.':
-    'फ़ोन पर स्ट्रीम पेज और PC पर देखें पेज खोलें: दोनों के लिंक हर पेज के ऊपर हैं।',
   'Camera → PC webcam': 'कैमरा → PC वेबकैम',
   'Camera preview, exactly what the PC gets': 'कैमरा प्रीव्यू, ठीक वही जो PC को मिलता है',
   Zoom: 'ज़ूम',
@@ -49,10 +44,6 @@ export const HI: Readonly<Record<string, string>> = {
   'Lost the connection to the PC. Trying again…': 'PC से कनेक्शन टूट गया। फिर से कोशिश हो रही है…',
   'Reconnecting…': 'फिर से जुड़ रहा है…',
   'Connecting…': 'जुड़ रहा है…',
-  'Use the camera of this device as the "LAN Webcam" on the PC, and approve who may watch it.':
-    'इस डिवाइस के कैमरे को PC पर "LAN Webcam" की तरह इस्तेमाल करें, और मंज़ूर करें कि कौन देख सकता है।',
-  'Ask to watch the camera another device is streaming; it approves your code.':
-    'दूसरे डिवाइस से स्ट्रीम हो रहा कैमरा देखने का अनुरोध करें; वह आपका कोड मंज़ूर करता है।',
   'Not connected to the PC yet.': 'अभी PC से कनेक्ट नहीं है।',
   'Another device started streaming.': 'किसी दूसरे डिवाइस ने स्ट्रीमिंग शुरू की।',
   'The PC webcam stopped taking frames.': 'PC वेबकैम ने फ़्रेम लेना बंद कर दिया।',
