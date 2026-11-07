@@ -21,8 +21,6 @@ export const JA: Readonly<Record<string, string>> = {
   'Start streaming': '配信を開始',
   Stop: '停止',
   'Tap "Start streaming"': '「配信を開始」をタップ',
-  'On the preview: drag to move, pinch (2 fingers) to zoom. The camera becomes the "LAN Webcam" webcam on the PC. Keep this page open and the screen on.':
-    'プレビュー上でドラッグすると移動、ピンチ（2 本指）でズームします。カメラは PC の「LAN Webcam」Web カメラになります。このページを開いたまま、画面をオンにしておいてください。',
   camera: 'カメラ',
   'Camera {number}': 'カメラ {number}',
   '{count} camera(s) found': 'カメラが {count} 台見つかりました',

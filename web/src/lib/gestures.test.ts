@@ -17,8 +17,17 @@ describe('GestureTracker', () => {
     tracker.down(1, { x: 0, y: 0 }, 1.5);
     tracker.down(2, { x: 100, y: 0 }, 1.5);
 
-    expect(tracker.move(2, { x: 200, y: 0 }, CANVAS_SCALE)).toEqual({ type: 'zoom', zoom: 3 });
-    expect(tracker.move(2, { x: 10_000, y: 0 }, CANVAS_SCALE)).toEqual({ type: 'zoom', zoom: ZOOM_MAX });
+    expect(tracker.move(2, { x: 200, y: 0 }, CANVAS_SCALE)).toEqual({ type: 'zoom', zoom: 3, rotation: 0 });
+    expect(tracker.move(2, { x: 10_000, y: 0 }, CANVAS_SCALE)).toEqual({ type: 'zoom', zoom: ZOOM_MAX, rotation: 0 });
+  });
+
+  it('two fingers twist the rotation from where it was, clockwise positive', () => {
+    const tracker = new GestureTracker();
+    tracker.down(1, { x: 0, y: 0 }, 1, 90);
+    tracker.down(2, { x: 100, y: 0 }, 1, 90);
+
+    expect(tracker.move(2, { x: 0, y: 100 }, CANVAS_SCALE)).toEqual({ type: 'zoom', zoom: 1, rotation: 180 });
+    expect(tracker.move(2, { x: 0, y: -100 }, CANVAS_SCALE)).toMatchObject({ rotation: 0 });
   });
 
   it('lifting one of two fingers goes back to panning from the remaining finger', () => {

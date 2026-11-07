@@ -1,23 +1,30 @@
-import { zoomFromPinch } from '@/lib/view';
+import { fingerAngle, zoomFromPinch } from '@/lib/view';
 
 export interface ScreenPoint {
   x: number;
   y: number;
 }
 
-export type GestureChange = { type: 'pan'; deltaX: number; deltaY: number } | { type: 'zoom'; zoom: number };
+export type GestureChange =
+  { type: 'pan'; deltaX: number; deltaY: number } | { type: 'zoom'; zoom: number; rotation: number };
 
 const pointerDistance = (first: ScreenPoint, second: ScreenPoint): number =>
   Math.hypot(first.x - second.x, first.y - second.y);
 
-// One finger drags the picture, two fingers pinch the zoom. Screen deltas are scaled to canvas pixels.
+const pointerAngle = (first: ScreenPoint, second: ScreenPoint): number =>
+  fingerAngle(second.x - first.x, second.y - first.y);
+
+// One finger drags the picture; two fingers pinch the zoom and twist the rotation. Screen deltas are scaled to
+// canvas pixels; the rotation is the start rotation plus how far the line between the fingers turned.
 export class GestureTracker {
   private readonly pointers = new Map<number, ScreenPoint>();
   private lastPanPoint: ScreenPoint | null = null;
   private pinchStartDistance = 0;
   private pinchStartZoom = 1;
+  private pinchStartAngle = 0;
+  private pinchStartRotation = 0;
 
-  down(pointerId: number, point: ScreenPoint, currentZoom: number): void {
+  down(pointerId: number, point: ScreenPoint, currentZoom: number, currentRotation = 0): void {
     this.pointers.set(pointerId, point);
     if (this.pointers.size === 1) {
       this.lastPanPoint = point;
@@ -28,6 +35,8 @@ export class GestureTracker {
     if (this.pointers.size === 2 && first && second) {
       this.pinchStartDistance = pointerDistance(first, second);
       this.pinchStartZoom = currentZoom;
+      this.pinchStartAngle = pointerAngle(first, second);
+      this.pinchStartRotation = currentRotation;
       this.lastPanPoint = null;
     }
   }
@@ -52,6 +61,7 @@ export class GestureTracker {
       return {
         type: 'zoom',
         zoom: zoomFromPinch(this.pinchStartZoom, this.pinchStartDistance, pointerDistance(first, second)),
+        rotation: this.pinchStartRotation + pointerAngle(first, second) - this.pinchStartAngle,
       };
     }
 

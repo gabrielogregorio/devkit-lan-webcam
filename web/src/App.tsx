@@ -60,9 +60,8 @@ function Shell(): ReactNode {
             {/* Always mounted: streaming from this device keeps going while you look at the other pages. */}
             <StreamPage hidden={route !== ROUTES.stream} />
             {route === ROUTES.watch && <WatchPage />}
-            {session.network && route !== ROUTES.watch && (
-              <NetworkPanel network={session.network} heading={route === ROUTES.home} />
-            )}
+            {/* The Stream and Watch pages place the network themselves, next to what it explains. */}
+            {session.network && route === ROUTES.home && <NetworkPanel network={session.network} heading />}
           </>
         )}
       </main>

@@ -21,8 +21,6 @@ export const ZH: Readonly<Record<string, string>> = {
   'Start streaming': '开始推流',
   Stop: '停止',
   'Tap "Start streaming"': '点击“开始推流”',
-  'On the preview: drag to move, pinch (2 fingers) to zoom. The camera becomes the "LAN Webcam" webcam on the PC. Keep this page open and the screen on.':
-    '在预览上：拖动可移动，双指捏合可缩放。摄像头会成为电脑上的“LAN Webcam”网络摄像头。请保持此页面打开并保持屏幕常亮。',
   camera: '摄像头',
   'Camera {number}': '摄像头 {number}',
   '{count} camera(s) found': '找到 {count} 个摄像头',

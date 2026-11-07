@@ -21,8 +21,6 @@ export const HI: Readonly<Record<string, string>> = {
   'Start streaming': 'स्ट्रीमिंग शुरू करें',
   Stop: 'रोकें',
   'Tap "Start streaming"': '"स्ट्रीमिंग शुरू करें" पर टैप करें',
-  'On the preview: drag to move, pinch (2 fingers) to zoom. The camera becomes the "LAN Webcam" webcam on the PC. Keep this page open and the screen on.':
-    'प्रीव्यू पर: खिसकाने के लिए ड्रैग करें, ज़ूम के लिए पिंच करें (2 उँगलियाँ)। कैमरा PC पर "LAN Webcam" वेबकैम बन जाता है। यह पेज खुला और स्क्रीन चालू रखें।',
   camera: 'कैमरा',
   'Camera {number}': 'कैमरा {number}',
   '{count} camera(s) found': '{count} कैमरा मिले',

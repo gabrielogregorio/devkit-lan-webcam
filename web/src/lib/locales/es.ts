@@ -21,8 +21,6 @@ export const ES: Readonly<Record<string, string>> = {
   'Start streaming': 'Iniciar transmisión',
   Stop: 'Detener',
   'Tap "Start streaming"': 'Toca "Iniciar transmisión"',
-  'On the preview: drag to move, pinch (2 fingers) to zoom. The camera becomes the "LAN Webcam" webcam on the PC. Keep this page open and the screen on.':
-    'En la vista previa: arrastra para mover, pellizca (2 dedos) para hacer zoom. La cámara se convierte en la webcam "LAN Webcam" del PC. Mantén esta página abierta y la pantalla encendida.',
   camera: 'cámara',
   'Camera {number}': 'Cámara {number}',
   '{count} camera(s) found': '{count} cámara(s) encontrada(s)',

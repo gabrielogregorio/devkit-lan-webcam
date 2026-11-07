@@ -190,6 +190,21 @@ describe('StreamPage', () => {
     expect(streamer.setView).toHaveBeenLastCalledWith(expect.objectContaining({ offsetX: 23, offsetY: 14 }));
   });
 
+  it('twisting two fingers rotates the camera, and lands on a quarter turn when close to one', () => {
+    const { streamer } = renderPage();
+    const canvas = preview() as HTMLCanvasElement;
+
+    fireEvent.pointerDown(canvas, { pointerId: 1, clientX: 0, clientY: 0 });
+    fireEvent.pointerDown(canvas, { pointerId: 2, clientX: 100, clientY: 0 });
+    fireEvent.pointerMove(canvas, { pointerId: 2, clientX: 100, clientY: 36 });
+
+    expect(streamer.setView).toHaveBeenLastCalledWith(expect.objectContaining({ rotation: 20 }));
+
+    fireEvent.pointerMove(canvas, { pointerId: 2, clientX: 5, clientY: 100 });
+
+    expect(streamer.setView).toHaveBeenLastCalledWith(expect.objectContaining({ rotation: 90 }));
+  });
+
   it('a pointer move without a gesture changes nothing', () => {
     const { streamer } = renderPage();
 

@@ -10,6 +10,7 @@ import {
   ZoomIn,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { NetworkPanel } from '@/components/NetworkPanel';
 import { QualityControls } from '@/components/QualityControls';
 import { RequestList } from '@/components/RequestList';
 import { RetroWindow } from '@/components/RetroWindow';
@@ -23,6 +24,7 @@ import {
   cycleRotation,
   panBy,
   resetView,
+  setRotation,
   setZoom,
   toggleFit,
   toggleMirror,
@@ -117,7 +119,7 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
 
   const onPointerDown = (event: PointerEvent<HTMLCanvasElement>): void => {
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    gesturesRef.current.down(event.pointerId, pointOf(event), view.zoom);
+    gesturesRef.current.down(event.pointerId, pointOf(event), view.zoom, view.rotation);
   };
 
   const onPointerMove = (event: PointerEvent<HTMLCanvasElement>): void => {
@@ -126,7 +128,7 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
       applyView(panBy(view, change.deltaX, change.deltaY));
     }
     if (change?.type === 'zoom') {
-      applyView(setZoom(view, change.zoom));
+      applyView(setRotation(setZoom(view, change.zoom), change.rotation));
     }
   };
 
@@ -230,20 +232,18 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
         <QualityControls settings={quality} averageFrameBytes={frameSize} onChange={changeQuality} />
       </RetroWindow>
 
-      <section className="who-watches" aria-labelledby="who-watches-title">
-        <RetroWindow title={t('Who may watch')} icon={Users} titleId="who-watches-title" level={2} tone="pink">
-          {streaming ? (
-            <RequestList requests={session.requests} onDecide={(id, decision) => store.decide(id, decision)} />
-          ) : (
-            <p className="hint">{t('Start streaming to see and approve who asks to watch.')}</p>
-          )}
-        </RetroWindow>
-      </section>
-      <p className="hint">
-        {t(
-          'On the preview: drag to move, pinch (2 fingers) to zoom. The camera becomes the "LAN Webcam" webcam on the PC. Keep this page open and the screen on.',
-        )}
-      </p>
+      <div className="side-by-side">
+        <section className="who-watches" aria-labelledby="who-watches-title">
+          <RetroWindow title={t('Who may watch')} icon={Users} titleId="who-watches-title" level={2} tone="pink">
+            {streaming ? (
+              <RequestList requests={session.requests} onDecide={(id, decision) => store.decide(id, decision)} />
+            ) : (
+              <p className="hint">{t('Start streaming to see and approve who asks to watch.')}</p>
+            )}
+          </RetroWindow>
+        </section>
+        {!hidden && session.network && <NetworkPanel network={session.network} />}
+      </div>
     </section>
   );
 }

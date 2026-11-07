@@ -13,6 +13,9 @@ const FULL_TURN_DEGREES = 360;
 const ROTATION_STEP_DEGREES = 90;
 const QUARTER_TURN_DEGREES = 90;
 const THREE_QUARTER_TURN_DEGREES = 270;
+// A twist that ends this close to a quarter turn lands on it: an upright picture is easy to get back.
+export const ROTATION_SNAP_DEGREES = 6;
+const RADIANS_TO_DEGREES = 180 / Math.PI;
 
 export type FitMode = 'contain' | 'cover';
 
@@ -56,10 +59,29 @@ export const resetView = (): ViewState => ({ ...DEFAULT_VIEW });
 
 export const toggleMirror = (view: ViewState): ViewState => ({ ...view, mirror: !view.mirror });
 
+// The button goes to the next quarter turn, also from a free angle left by a twist.
 export const cycleRotation = (view: ViewState): ViewState => ({
   ...view,
-  rotation: normalizeRotation(view.rotation + ROTATION_STEP_DEGREES),
+  rotation: normalizeRotation(
+    (Math.floor(normalizeRotation(view.rotation) / ROTATION_STEP_DEGREES) + 1) * ROTATION_STEP_DEGREES,
+  ),
 });
+
+/** Whole degrees, snapped to the nearest quarter turn when within ROTATION_SNAP_DEGREES of it. */
+export function snapRotation(degrees: number): number {
+  const nearestQuarter = Math.round(degrees / ROTATION_STEP_DEGREES) * ROTATION_STEP_DEGREES;
+  const snapped = Math.abs(degrees - nearestQuarter) <= ROTATION_SNAP_DEGREES ? nearestQuarter : Math.round(degrees);
+
+  return normalizeRotation(snapped);
+}
+
+export const setRotation = (view: ViewState, degrees: number): ViewState => ({
+  ...view,
+  rotation: snapRotation(degrees),
+});
+
+/** The angle of the line between two fingers, in degrees (screen y grows downwards, so clockwise is positive). */
+export const fingerAngle = (deltaX: number, deltaY: number): number => Math.atan2(deltaY, deltaX) * RADIANS_TO_DEGREES;
 
 export const toggleFit = (view: ViewState): ViewState => ({
   ...view,

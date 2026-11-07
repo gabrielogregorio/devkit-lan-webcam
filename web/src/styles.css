@@ -265,6 +265,7 @@ html {
 .page > .window,
 .page > section,
 .page > .row,
+.page > .side-by-side,
 .page > .hint,
 .page > .request-code {
   width: 100%;
@@ -289,13 +290,22 @@ html {
     max-width: none;
   }
 
-  .page.stream > .preview-window {
-    grid-row: span 2;
-  }
-
-  .page.stream > .hint {
+  .page.stream > .side-by-side {
     grid-column: 1 / -1;
   }
+}
+
+/* Who may watch and the network, side by side when there is room. */
+.side-by-side {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-items: start;
+  gap: 18px;
+  width: 100%;
+}
+
+.side-by-side .network-panel {
+  max-width: none;
 }
 
 /* ---------- the window ---------- */

@@ -5,11 +5,14 @@ import {
   clamp,
   computeDrawParams,
   cycleRotation,
+  fingerAngle,
   normalizeRotation,
   panBy,
   resetView,
   scaleOffsets,
+  setRotation,
   setZoom,
+  snapRotation,
   toggleFit,
   toggleMirror,
   zoomFromPinch,
@@ -44,6 +47,30 @@ describe('view state', () => {
     expect(once.rotation).toBe(90);
     expect(cycleRotation({ ...resetView(), rotation: 270 }).rotation).toBe(0);
     expect(fourTimes.rotation).toBe(0);
+  });
+
+  it('the button goes to the next quarter turn from a free angle', () => {
+    expect(cycleRotation({ ...resetView(), rotation: 37 }).rotation).toBe(90);
+    expect(cycleRotation({ ...resetView(), rotation: 300 }).rotation).toBe(0);
+  });
+
+  it.each([
+    [37.4, 37],
+    [95, 90],
+    [84, 90],
+    [83, 83],
+    [-3, 0],
+    [362, 0],
+    [-100, 260],
+  ])('a twist to %s degrees lands on %s', (degrees, expected) => {
+    expect(snapRotation(degrees)).toBe(expected);
+    expect(setRotation(resetView(), degrees).rotation).toBe(expected);
+  });
+
+  it('measures the angle of the line between two fingers, clockwise positive', () => {
+    expect(fingerAngle(1, 0)).toBe(0);
+    expect(fingerAngle(0, 1)).toBe(90);
+    expect(fingerAngle(-1, 0)).toBe(180);
   });
 
   it.each([

@@ -58,7 +58,8 @@ with camera access is enough.
   | Watch | `/watch` | shows live the camera another device is streaming |
 
   Moving between pages does not stop the streaming of this device.
-- **Live controls on the Stream page:** zoom (slider or pinch), drag to move, mirror, rotate 90°, fit
+- **Live controls on the Stream page:** zoom (slider or pinch), drag to move, twist two fingers to rotate
+  (it lands on the nearest quarter turn within 6°), mirror, rotate 90°, fit
   or crop, reset, back/front camera buttons and a lens dropdown.
 - **Paired and encrypted:** every device pairs once with a 6-digit code the PC shows (it changes
   every 5 minutes); after that, everything between the browser and the PC is encrypted, even over
@@ -68,7 +69,7 @@ with camera access is enough.
   requests get frames.
 - **Stream quality on the camera device:** resolution (360p, 540p, 720p), frames per second (10 to 30)
   and JPEG quality, with the measured size per frame.
-- **Network panel** (the home page, below the Stream page, and under the status inside the Watch picture window): one line per machine: the router, this PC (with any page open on
+- **Network panel** (the home page, beside Who may watch on the Stream page, and under the status inside the Watch picture window): one line per machine: the router, this PC (with any page open on
   it), the camera and every other device with its role, and which one is you. Never the pairing code:
   anyone looking at a screen, or at a screen shared in a call, could pair with it.
 - **The preview is the canvas that is sent:** what you see on the device is exactly what the PC gets.
@@ -379,7 +380,7 @@ model, wire contents and every break test: **[docs/security.md](docs/security.md
 | `web/src/lib/cameraStreamer.ts` | camera → canvas → JPEG → session; one frame in flight, quality, camera switching with fallback |
 | `web/src/lib/useWatchStream.ts` | the Watch page's frames: one object URL per frame, frame rate |
 | `web/src/lib/quality.ts`, `deviceLabel.ts` | quality settings and the short device names of the panel |
-| `web/src/lib/view.ts`, `gestures.ts` | pure framing math (zoom/pan/rotation/fit) and drag/pinch tracking |
+| `web/src/lib/view.ts`, `gestures.ts` | pure framing math (zoom/pan/rotation/fit) and drag/pinch/twist tracking |
 | `web/src/lib/router.ts`, `components/NavLink.tsx` | the three routes and the links that move between them without reloading |
 | `web/src/lib/protocol.ts` | the only reader of the server's JSON messages |
 | `web/src/lib/i18n.ts`, `locales/`, `streamText.ts`, `watchText.ts` | language detection and switching, one catalog per language and every status text as a pure function |
