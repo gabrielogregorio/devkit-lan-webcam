@@ -78,9 +78,6 @@ export const JA: Readonly<Record<string, string>> = {
   'Approved, waiting for frames…': '承認されました。映像を待っています…',
   'Ask to watch': '視聴をリクエスト',
   'Ask again with a new code': '新しいコードで再リクエスト',
-  'Your code: {code}': 'あなたのコード：{code}',
-  'Each tab asks with its own key; the camera device approves the code shown here. Double click the picture for full screen.':
-    'タブごとに専用の鍵でリクエストします。カメラの端末がここに表示されたコードを承認します。映像をダブルクリックすると全画面になります。',
   'Pair this device': 'この端末をペアリング',
   'Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.':
     'PC に表示された 6 桁のコードを入力してください。上部バーの LAN Webcam アイコン、または ./run.sh code で確認できます。',

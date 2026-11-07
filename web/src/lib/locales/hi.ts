@@ -78,9 +78,6 @@ export const HI: Readonly<Record<string, string>> = {
   'Approved, waiting for frames…': 'मंज़ूर, फ़्रेम का इंतज़ार…',
   'Ask to watch': 'देखने का अनुरोध करें',
   'Ask again with a new code': 'नए कोड के साथ फिर अनुरोध करें',
-  'Your code: {code}': 'आपका कोड: {code}',
-  'Each tab asks with its own key; the camera device approves the code shown here. Double click the picture for full screen.':
-    'हर टैब अपनी कुंजी से अनुरोध करता है; कैमरा वाला डिवाइस यहाँ दिखाया कोड मंज़ूर करता है। फ़ुल स्क्रीन के लिए तस्वीर पर डबल क्लिक करें।',
   'Pair this device': 'यह डिवाइस पेयर करें',
   'Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.':
     'PC पर दिखा 6 अंकों का कोड लिखें: ऊपर की बार में LAN Webcam आइकन में, या ./run.sh code से।',

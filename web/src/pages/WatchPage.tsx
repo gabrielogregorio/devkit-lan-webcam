@@ -1,8 +1,8 @@
 import { Eye, Maximize } from 'lucide-react';
 import { useRef, type ReactNode } from 'react';
+import { NetworkPanel } from '@/components/NetworkPanel';
 import { RetroWindow } from '@/components/RetroWindow';
 import { t } from '@/lib/i18n';
-import { formatRequestCode } from '@/lib/requestCode';
 import { useSession, useSessionStore } from '@/lib/SessionContext';
 import { useWatchStream } from '@/lib/useWatchStream';
 import { watchMessages, watchPhase } from '@/lib/watchText';
@@ -48,6 +48,7 @@ export function WatchPage(): ReactNode {
         <div id="watchStatus" role="status" className={`status ${messages.kind}`}>
           {messages.status}
         </div>
+        {session.network && <NetworkPanel network={session.network} inline />}
       </RetroWindow>
       <div className="row">
         {ask && (
@@ -60,14 +61,6 @@ export function WatchPage(): ReactNode {
           {t('Full screen')}
         </button>
       </div>
-      {status?.code && (
-        <p className="request-code">{t('Your code: {code}', { code: formatRequestCode(status.code) })}</p>
-      )}
-      <p className="hint">
-        {t(
-          'Each tab asks with its own key; the camera device approves the code shown here. Double click the picture for full screen.',
-        )}
-      </p>
     </section>
   );
 }

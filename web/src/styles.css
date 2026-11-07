@@ -791,6 +791,11 @@ button.watch-placeholder:hover {
   background: var(--pink);
 }
 
+/* The network under the picture on the Watch page: the same lines, inside the picture window. */
+.network-inline .network-nodes {
+  gap: 8px;
+}
+
 .network-panel {
   width: 100%;
   max-width: 820px;

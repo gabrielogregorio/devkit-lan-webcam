@@ -74,9 +74,6 @@ export const ZH: Readonly<Record<string, string>> = {
   'Approved, waiting for frames…': '已批准，等待画面…',
   'Ask to watch': '请求观看',
   'Ask again with a new code': '用新代码再次请求',
-  'Your code: {code}': '你的代码：{code}',
-  'Each tab asks with its own key; the camera device approves the code shown here. Double click the picture for full screen.':
-    '每个标签页使用自己的密钥发出请求；摄像头设备批准这里显示的代码。双击画面可全屏。',
   'Pair this device': '配对这台设备',
   'Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.':
     '输入电脑上显示的 6 位代码：在顶部栏的 LAN Webcam 图标中查看，或运行 ./run.sh code。',

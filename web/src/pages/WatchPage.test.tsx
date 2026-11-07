@@ -1,7 +1,7 @@
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WatchPage } from '@/pages/WatchPage';
-import { clearSessionStorage, renderConnected } from '@/testRender';
+import { clearSessionStorage, NETWORK_MESSAGE, renderConnected } from '@/testRender';
 
 const FRAME_URL = 'blob:frame';
 const SECOND_FRAME_URL = 'blob:frame-2';
@@ -43,7 +43,6 @@ describe('WatchPage', () => {
 
     act(() => server.pushJson(status('pending')));
 
-    expect(screen.getByText('Your code: ab12-cd34')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Request sent - code ab12-cd34');
   });
 
@@ -65,6 +64,19 @@ describe('WatchPage', () => {
     await user.click(screen.getByRole('button', { name: 'The camera device denied code ab12-cd34.' }));
 
     expect(server.received().filter((message) => message.json?.type === 'request').length).toBeGreaterThan(1);
+  });
+
+  it('shows the network inside the picture window, under the status', () => {
+    const { server } = renderConnected(<WatchPage />);
+
+    expect(screen.queryByRole('complementary', { name: 'Network' })).not.toBeInTheDocument();
+
+    act(() => server.pushJson(NETWORK_MESSAGE));
+    const network = screen.getByRole('complementary', { name: 'Network' });
+
+    expect(network.closest('.watch-window')).not.toBeNull();
+    expect(within(network).getAllByRole('listitem')).toHaveLength(4);
+    expect(within(network).queryByRole('heading')).not.toBeInTheDocument();
   });
 
   it('asks again with a new key after a denial', async () => {

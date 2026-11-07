@@ -14,7 +14,8 @@ const LAUNCH_ARGS = ['--use-fake-device-for-media-stream', '--use-fake-ui-for-me
 const STATUS_TIMEOUT_MS = 8000;
 const FRAME_COLLECTION_MS = 800;
 const CAMERA_SWITCH_CLICKS = 6;
-const REQUEST_CODE = /Your code: ([0-9a-f]{4}-[0-9a-f]{4})/;
+// The watch status shows the code of the request while it waits: "Request sent - code ab12-cd34".
+const REQUEST_CODE = /code ([0-9a-f]{4}-[0-9a-f]{4})/;
 const WIRE_WATCH_MS = 1500;
 const MIN_ENCRYPTED_FRAMES = 3;
 // The only messages that may cross in the clear: pairing and session handshakes, made of public values.
@@ -172,13 +173,15 @@ test('over plain HTTP, only the request the camera approves gets the picture', a
       'the laptop really is on plain HTTP, without the browser crypto API',
     );
     await laptop.getByRole('button', { name: 'Ask to watch', exact: true }).click();
-    await laptop.getByText(REQUEST_CODE).waitFor({ timeout: STATUS_TIMEOUT_MS });
-    const laptopCode = (await laptop.getByText(REQUEST_CODE).textContent()).match(REQUEST_CODE)[1];
+    await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+    const laptopCode = (await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).textContent()).match(
+      REQUEST_CODE,
+    )[1];
 
     const intruder = await openDevice();
     await pairAndOpen(intruder, `${HTTP_URL}/watch`);
     await intruder.getByRole('button', { name: 'Ask to watch', exact: true }).click();
-    await intruder.getByText(REQUEST_CODE).waitFor({ timeout: STATUS_TIMEOUT_MS });
+    await intruder.locator('#watchStatus', { hasText: REQUEST_CODE }).waitFor({ timeout: STATUS_TIMEOUT_MS });
 
     await camera.getByRole('button', { name: `Approve ${laptopCode}` }).click();
 
@@ -206,8 +209,10 @@ test('an eavesdropper on plain HTTP records the whole watch session and finds no
       const laptop = await openDevice();
       await pairAndOpen(laptop, `${tap.url}/watch`);
       await laptop.getByRole('button', { name: 'Ask to watch', exact: true }).click();
-      await laptop.getByText(REQUEST_CODE).waitFor({ timeout: STATUS_TIMEOUT_MS });
-      const laptopCode = (await laptop.getByText(REQUEST_CODE).textContent()).match(REQUEST_CODE)[1];
+      await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+      const laptopCode = (await laptop.locator('#watchStatus', { hasText: REQUEST_CODE }).textContent()).match(
+        REQUEST_CODE,
+      )[1];
       await camera.getByRole('button', { name: `Approve ${laptopCode}` }).click();
       await laptop.getByRole('img', { name: 'Live camera' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
       await laptop.waitForTimeout(WIRE_WATCH_MS);

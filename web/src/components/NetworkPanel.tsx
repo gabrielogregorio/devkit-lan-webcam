@@ -9,6 +9,8 @@ interface NetworkPanelProps {
   network: NetworkPanelData;
   /** On the home page the panel is the page: its title becomes the page heading. */
   heading?: boolean;
+  /** Inside another window (the Watch page): just the list, no window of its own. */
+  inline?: boolean;
 }
 
 // The most telling role first: it also picks the colour of the line.
@@ -97,36 +99,44 @@ function NetworkNode({ icon: Icon, ip, detail, role, you }: Readonly<NodeProps>)
 }
 
 // Who is where on the network, one line per machine: the router, this PC (with any page open on it), the rest.
-export function NetworkPanel({ network, heading = false }: Readonly<NetworkPanelProps>): ReactNode {
+export function NetworkPanel({ network, heading = false, inline = false }: Readonly<NetworkPanelProps>): ReactNode {
   const machines = machinesOf(network.peers);
   const onThePc = machines.find((machine) => machine.ip === network.server);
   const others = machines.filter((machine) => machine !== onThePc);
   const pcDetail = [t('PC (server and webcam)'), onThePc && pagesText(onThePc)].filter(Boolean).join(' · ');
 
+  const list = (
+    <ul className="network-nodes">
+      <NetworkNode icon={Router} ip={network.router ?? '?'} detail={t('router')} you={false} />
+      <NetworkNode
+        icon={Monitor}
+        ip={network.server}
+        detail={pcDetail}
+        role={onThePc?.roles[0]}
+        you={network.you === network.server || onThePc?.you === true}
+      />
+      {others.map((machine) => (
+        <NetworkNode
+          key={machine.ip}
+          icon={machine.icon}
+          ip={machine.ip}
+          detail={pagesText(machine)}
+          role={machine.roles[0]}
+          you={machine.you}
+        />
+      ))}
+    </ul>
+  );
+
   return (
-    <aside className="network-panel" aria-label={t('Network')}>
-      <RetroWindow title={t('Network')} icon={Network} tone="blue" titleId={heading ? 'network-title' : undefined}>
-        <ul className="network-nodes">
-          <NetworkNode icon={Router} ip={network.router ?? '?'} detail={t('router')} you={false} />
-          <NetworkNode
-            icon={Monitor}
-            ip={network.server}
-            detail={pcDetail}
-            role={onThePc?.roles[0]}
-            you={network.you === network.server || onThePc?.you === true}
-          />
-          {others.map((machine) => (
-            <NetworkNode
-              key={machine.ip}
-              icon={machine.icon}
-              ip={machine.ip}
-              detail={pagesText(machine)}
-              role={machine.roles[0]}
-              you={machine.you}
-            />
-          ))}
-        </ul>
-      </RetroWindow>
+    <aside className={inline ? 'network-inline' : 'network-panel'} aria-label={t('Network')}>
+      {inline ? (
+        list
+      ) : (
+        <RetroWindow title={t('Network')} icon={Network} tone="blue" titleId={heading ? 'network-title' : undefined}>
+          {list}
+        </RetroWindow>
+      )}
     </aside>
   );
 }

@@ -80,9 +80,6 @@ export const FR: Readonly<Record<string, string>> = {
   'Approved, waiting for frames…': 'Approuvé, en attente des images…',
   'Ask to watch': 'Demander à regarder',
   'Ask again with a new code': 'Redemander avec un nouveau code',
-  'Your code: {code}': 'Votre code : {code}',
-  'Each tab asks with its own key; the camera device approves the code shown here. Double click the picture for full screen.':
-    'Chaque onglet demande avec sa propre clé ; l’appareil de la caméra approuve le code affiché ici. Double-cliquez sur l’image pour le plein écran.',
   'Pair this device': 'Associer cet appareil',
   'Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.':
     'Saisissez le code à 6 chiffres affiché sur le PC : dans l’icône LAN Webcam de la barre du haut, ou avec ./run.sh code.',
