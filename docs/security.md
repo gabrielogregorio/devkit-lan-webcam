@@ -17,6 +17,7 @@ network you do not trust.
 | **Code guesser** (anyone who reaches the PC) | try pairing codes | **Yes.** One guess per attempt, 5 per IP per 10 minutes, 10 in total until the code changes, a new code every 5 minutes |
 | **Active attacker on the page** (plain HTTP on 9080, or a self-signed certificate accepted blindly) | serve a changed HTML/JavaScript | **No.** The changed page runs with the device's credential and sees the decrypted picture |
 | **Someone with the device** (or a script running in the page's origin) | read `localStorage` | **No.** The device credential is there; **Unpair all devices** revokes it |
+| **Someone with a clone** of the project, the same venv, the same date and time | rebuild the start conditions | **Yes.** Nothing comes from the clock: every random byte mixes the kernel generator with the install's own `.env` secret, which is not in git |
 | **The PC itself** | decrypt | **By design.** It feeds the frames to `/dev/video10`, which any local program can read |
 
 ## What crosses the wire
@@ -49,6 +50,31 @@ payload as the encryption left it.
 
 Code: `crypto_channel.py`, `handshake.py`, `pairing.py`, `access.py` on the PC; `web/src/lib/crypto/`
 in the browser (the audited noble libraries, which work without `crypto.subtle` on plain HTTP).
+
+## Randomness
+
+Every key, seed and nonce the PC draws (pairing seed, device ids and secrets, SPAKE2 scalars, session
+X25519 keys and nonces, the credential nonce) comes from `entropy.random_bytes(length, purpose)`:
+
+| Source | What it adds |
+|---|---|
+| Kernel CSPRNG (`os.urandom`, `getrandom`) | the main source; Linux feeds it with the CPU's RDRAND/RDSEED (when present), interrupt timing and jitter |
+| `/dev/hwrng` | the hardware generator, when this process may read it (usually root only, so mostly skipped) |
+| `.env` secret (`LAN_WEBCAM_ENTROPY_SECRET`) | 32 random bytes per install, written on the first run with mode 600, never in git. Two installs differ even if the kernel generator were broken |
+| time in ns, process id, a counter, the purpose | not secret: only make every input unique |
+
+They are mixed with HKDF-SHA256 (salt = HMAC(.env secret, hardware + kernel bytes read once per
+process); key = HMAC(salt, fresh kernel bytes) on every call). The `.env` secret never derives a stored
+key, so changing or losing it breaks nothing. The rotating 6-digit code does use the clock, but only
+together with the random pairing seed; knowing the time gives nothing without that seed.
+
+After pairing, the keys stay unpredictable too: the device credential is random, and every connection
+mixes fresh X25519 keys from both sides. The browser draws its share from `crypto.getRandomValues`.
+
+Tests (`tests/backend/test_entropy.py`): the same nanosecond and process id still give new bytes; two
+fresh clones started at the same instant write different secrets; with the kernel generator replaced by
+zeros, the `.env` secret alone separates two installs (and the same secret gives the same bytes, proof
+that the test really froze everything else); no other module of the PC draws randomness by itself.
 
 ## Break tests
 
@@ -97,4 +123,5 @@ RUN_E2E=1 ./run-tests.sh                   # everything, with the real browser t
   (libsodium, noble); the way they are put together is this project's own, checked by the tests above
   and by both sides producing the same bytes (`web/src/lib/crypto/vectors.json`).
 - Traffic analysis (size and timing) is not padded away.
+- The browser cannot read the `.env`: its randomness is the browser's own `crypto.getRandomValues`.
 - No certificate pinning: the HTTPS certificate is self-signed and the browser asks you once.
