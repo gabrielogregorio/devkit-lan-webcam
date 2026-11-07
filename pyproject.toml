@@ -5,6 +5,7 @@ description = "Any camera on the local network becomes a virtual webcam on the P
 requires-python = ">=3.12"
 dependencies = [
     "aiohttp>=3.9",
+    "pynacl>=1.6",
 ]
 
 [dependency-groups]
@@ -22,9 +23,11 @@ target-version = "py312"
 select = ["E", "F", "W", "B", "I", "UP"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["server", "conftest", "tray_icon"]
+known-first-party = ["server", "access", "crypto_channel", "pairing", "network", "conftest", "tray_icon"]
 
 [tool.uv]
 # "Virtual" project: not an installable package, only scripts (server.py, run.sh).
 # uv manages the dependencies only.
 package = false
+# Refuses versions published less than 3 days ago, including transitive ones.
+exclude-newer = "3 days"
