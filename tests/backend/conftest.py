@@ -22,6 +22,12 @@ def private_config_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Pairing seed and paired devices go to a temporary folder, never to the PC's real config."""
     config = tmp_path / "config"
     monkeypatch.setenv("LAN_WEBCAM_CONFIG_DIR", str(config))
+    # The install secret too: a temporary .env, never the project's real one.
+    monkeypatch.setenv("LAN_WEBCAM_ENV_FILE", str(tmp_path / ".env"))
+    monkeypatch.delenv("LAN_WEBCAM_ENTROPY_SECRET", raising=False)
+    import entropy
+
+    entropy.reset_for_tests()
     return config
 
 

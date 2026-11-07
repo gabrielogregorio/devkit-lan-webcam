@@ -12,3 +12,4 @@ dist/
 .omo
 web/dist/
 coverage/
+.env

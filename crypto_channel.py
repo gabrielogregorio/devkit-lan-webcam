@@ -15,12 +15,13 @@ The browser side is web/src/lib/crypto/ (noble libraries); both sides are checke
 import hashlib
 import hmac
 import json
-import secrets
 import struct
 from dataclasses import dataclass
 
 from nacl import bindings as sodium
 from nacl.exceptions import CryptoError
+
+import entropy
 
 PROTOCOL = b"lan-webcam v1"
 # RFC 9382, section 4: M and N for edwards25519 (nobody knows their discrete logarithm).
@@ -66,7 +67,7 @@ def scalar_from_code(code: str) -> bytes:
 
 
 def random_scalar() -> bytes:
-    return sodium.crypto_core_ed25519_scalar_reduce(secrets.token_bytes(64))
+    return sodium.crypto_core_ed25519_scalar_reduce(entropy.random_bytes(64, "spake2 scalar"))
 
 
 def decode_point(hex_text: object) -> bytes:
@@ -134,7 +135,7 @@ def spake2_server(client_share: bytes, code: str) -> PairingCandidate:
 
 def seal(key: bytes, plaintext: bytes) -> bytes:
     """One-off encryption with a random nonce (the device credential): nonce || ciphertext."""
-    nonce = secrets.token_bytes(NONCE_BYTES)
+    nonce = entropy.random_bytes(NONCE_BYTES, "credential nonce")
     return nonce + sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(plaintext, PROTOCOL, nonce, key)
 
 
@@ -176,13 +177,13 @@ class ServerHello:
 
 
 def server_hello(device_id: str, device_secret: bytes, client_public: bytes, client_nonce: bytes) -> ServerHello:
-    server_private = secrets.token_bytes(KEY_BYTES)
+    server_private = entropy.random_bytes(KEY_BYTES, "session x25519")
     server_public = sodium.crypto_scalarmult_base(server_private)
     try:
         shared_secret = sodium.crypto_scalarmult(server_private, client_public)
     except (CryptoError, RuntimeError) as error:
         raise HandshakeError("degenerate X25519 key") from error
-    server_nonce = secrets.token_bytes(SESSION_NONCE_BYTES)
+    server_nonce = entropy.random_bytes(SESSION_NONCE_BYTES, "session nonce")
     keys = session_keys(
         device_secret, device_id, client_public, client_nonce, server_public, server_nonce, shared_secret
     )

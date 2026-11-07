@@ -23,7 +23,7 @@ target-version = "py312"
 select = ["E", "F", "W", "B", "I", "UP"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["server", "access", "crypto_channel", "pairing", "network", "conftest", "tray_icon"]
+known-first-party = ["entropy", "server", "access", "crypto_channel", "pairing", "network", "conftest", "tray_icon"]
 
 [tool.uv]
 # "Virtual" project: not an installable package, only scripts (server.py, run.sh).

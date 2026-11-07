@@ -13,10 +13,11 @@ import hashlib
 import hmac
 import json
 import os
-import secrets
 import struct
 import time
 from datetime import UTC, datetime
+
+import entropy
 
 CODE_DIGITS = 6
 CODE_MODULO = 10**CODE_DIGITS
@@ -69,7 +70,7 @@ def _now_iso() -> str:
 
 
 def rotate_seed() -> bytes:
-    seed = secrets.token_bytes(SEED_BYTES)
+    seed = entropy.random_bytes(SEED_BYTES, "pairing seed")
     _write_private_json(SEED_FILE, {"seed": seed.hex(), "created": _now_iso()})
     return seed
 
@@ -136,8 +137,8 @@ def device_secret(device_id: str) -> bytes | None:
 
 
 def add_device(ip: str, label: str) -> tuple[str, bytes]:
-    device_id = secrets.token_hex(DEVICE_ID_BYTES)
-    secret = secrets.token_bytes(DEVICE_SECRET_BYTES)
+    device_id = entropy.random_hex(DEVICE_ID_BYTES, "device id")
+    secret = entropy.random_bytes(DEVICE_SECRET_BYTES, "device secret")
     devices = load_devices()
     devices[device_id] = {
         "secret": secret.hex(),

@@ -41,7 +41,7 @@ SEAL_NONCE = bytes(range(200, 224))
 @contextmanager
 def fixed_random(chunks: list[bytes]) -> Iterator[None]:
     pending = iter(chunks)
-    with mock.patch("crypto_channel.secrets.token_bytes", side_effect=lambda _length: next(pending)):
+    with mock.patch("crypto_channel.entropy.random_bytes", side_effect=lambda _length, _purpose: next(pending)):
         yield
 
 

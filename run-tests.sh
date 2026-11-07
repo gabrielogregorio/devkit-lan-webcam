@@ -68,6 +68,7 @@ if [ "${RUN_E2E:-0}" = "1" ]; then
   mkdir -p tmp
   # Its own pairing state and plain-HTTP port: never the PC's real config nor the real server's 9080.
   export LAN_WEBCAM_CONFIG_DIR="$PWD/tmp/e2e-config"
+  export LAN_WEBCAM_ENV_FILE="$PWD/tmp/e2e.env"
   export E2E_HTTP_PORT="${E2E_HTTP_PORT:-19080}"
   # The LAN address, not localhost: browsers treat http://localhost as secure, a LAN IP is the real plain-HTTP case.
   E2E_LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"

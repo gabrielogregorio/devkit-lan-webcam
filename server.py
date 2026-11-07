@@ -16,6 +16,7 @@ from typing import IO
 
 from aiohttp import WSMsgType, web
 
+import entropy
 import pairing
 from access import (
     Broadcast,
@@ -351,6 +352,7 @@ def main() -> None:
     print(f"  Pairing code now:          {code[:3]} {code[3:]}  (changes every {pairing.code_period_seconds()} s;")
     print("                             see it in the top bar icon or with ./run.sh code)")
     print(f"  Virtual webcam:            {DEVICE}  ({WIDTH}x{HEIGHT}@{FPS})")
+    print(f"  Randomness:                {' + '.join(entropy.sources())}")
     print("=" * 60 + "\n")
     try:
         asyncio.run(serve(build_app(server_ip=address), ssl_context))
