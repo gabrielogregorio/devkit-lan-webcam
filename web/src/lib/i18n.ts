@@ -12,6 +12,7 @@ export const PT_BR: Readonly<Record<string, string>> = {
   'LAN Webcam': 'LAN Webcam',
   'Skip to content': 'Pular para o conteúdo',
   Pages: 'Páginas',
+  Controls: 'Controles',
   '📷 Stream': '📷 Transmitir',
   '👀 Watch': '👀 Assistir',
   'Any camera on your network becomes a webcam on the PC.': 'Qualquer câmera da sua rede vira webcam no PC.',

@@ -52,7 +52,7 @@ export function NetworkPanel({ network, receivedAt }: Readonly<NetworkPanelProps
 
   return (
     <aside className="network-panel" aria-label={t('Network')}>
-      <RetroWindow title={'C:\\network\\lan.exe'} tone="blue">
+      <RetroWindow title={t('Network')} tone="blue">
         <div className="network-hub">
           <span className="node">
             <span className="node-icon" aria-hidden="true">

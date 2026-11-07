@@ -19,13 +19,13 @@ describe('RetroWindow', () => {
 
   it('keeps a title without an id as decoration, hidden from screen readers', () => {
     render(
-      <RetroWindow title={'C:\\controls'}>
+      <RetroWindow title={'Controls'}>
         <p>body</p>
       </RetroWindow>,
     );
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
-    expect(screen.getByText('C:\\controls')).toHaveAttribute('aria-hidden', 'true');
-    expect(screen.getByText('C:\\controls').closest('.window')).toHaveClass('tone-violet');
+    expect(screen.getByText('Controls')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('Controls').closest('.window')).toHaveClass('tone-violet');
   });
 });

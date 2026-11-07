@@ -133,7 +133,7 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
         </div>
       </RetroWindow>
 
-      <RetroWindow title={'C:\\camera\\controls.exe'} tone="teal" className="panel">
+      <RetroWindow title={t('Controls')} tone="teal" className="panel">
         <div className="zoomrow">
           <label htmlFor="zoom">🔍 {t('Zoom')}</label>
           <input

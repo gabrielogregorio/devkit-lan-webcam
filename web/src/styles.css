@@ -134,10 +134,6 @@ h2 {
   letter-spacing: 0.5px;
 }
 
-.brand::before {
-  content: 'C:\\ ' / '';
-}
-
 .site-nav {
   display: flex;
   gap: 10px;
