@@ -32,6 +32,16 @@ fi
 # ---------- backend (pytest, mocked ffmpeg, ephemeral port) ----------
 run_layer "backend  (pytest)" "$PY" -m pytest tests/backend -q
 
+# The break tests must notice when the encryption is gone: with it turned off, all three have to fail.
+break_tests_bite() {
+  local output
+  output="$(PYTHONPATH=.:tests/backend "$PY" -m pytest -p plugin_without_encryption -p no:cacheprovider -q \
+    tests/backend/test_wire_tap.py -k "eavesdropper or same_picture or bit_flipped" 2>&1)"
+  echo "$output" | tail -n 1
+  grep -q "3 failed" <<< "$output" && ! grep -q "passed" <<< "$output"
+}
+run_layer "backend  (break tests fail without encryption)" break_tests_bite
+
 # ---------- web app (React + TypeScript, pnpm on Node 24) ----------
 if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ] && ! node --version 2>/dev/null | grep -q '^v24'; then
   # shellcheck disable=SC1091

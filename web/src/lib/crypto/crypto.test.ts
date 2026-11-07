@@ -145,6 +145,16 @@ describe('MessageCipher', () => {
     expect(() => receiver.decrypt(new Uint8Array(8))).toThrow('message too short');
   });
 
+  it('refuses a message sent back to its sender and a message with a rewritten counter', () => {
+    const [sender, receiver] = pair();
+    const reflected = sender.encrypt(KIND_FRAME, Uint8Array.of(1));
+    const moved = sender.encrypt(KIND_FRAME, Uint8Array.of(2));
+    moved[7] = (moved[7] ?? 0) ^ 5;
+
+    expect(() => sender.decrypt(reflected)).toThrow();
+    expect(() => receiver.decrypt(moved)).toThrow();
+  });
+
   it('carries an empty payload with its kind', () => {
     const [sender, receiver] = pair();
 

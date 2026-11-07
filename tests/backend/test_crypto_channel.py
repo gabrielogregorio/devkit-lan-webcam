@@ -59,6 +59,25 @@ def test_a_tampered_message_is_refused() -> None:
         receiver.decrypt(bytes(message))
 
 
+def test_a_message_sent_back_to_its_sender_is_refused() -> None:
+    """Each direction has its own key: a captured message reflected to its sender opens nothing."""
+    sender, _receiver = cipher_pair()
+    message = sender.encrypt(KIND_FRAME, b"jpeg")
+
+    with pytest.raises(HandshakeError, match="authentication"):
+        sender.decrypt(message)
+
+
+def test_the_counter_cannot_be_moved_to_slip_a_message_in() -> None:
+    """The counter is the nonce: rewriting it to pass the replay check breaks the authentication."""
+    sender, receiver = cipher_pair()
+    message = bytearray(sender.encrypt(KIND_FRAME, b"jpeg"))
+    message[7] ^= 5
+
+    with pytest.raises(HandshakeError, match="authentication"):
+        receiver.decrypt(bytes(message))
+
+
 def test_a_message_too_short_is_refused() -> None:
     _sender, receiver = cipher_pair()
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright';
+import { OPCODE_BINARY, OPCODE_TEXT, startWireTap } from './wire-tap.mjs';
 
 const BASE_URL = process.env.E2E_BASE_URL || `https://localhost:${process.env.PORT || 19443}`;
 const HTTP_URL = process.env.E2E_HTTP_URL || 'http://localhost:19080';
@@ -14,6 +15,13 @@ const STATUS_TIMEOUT_MS = 8000;
 const FRAME_COLLECTION_MS = 800;
 const CAMERA_SWITCH_CLICKS = 6;
 const REQUEST_CODE = /Your code: ([0-9a-f]{4}-[0-9a-f]{4})/;
+const WIRE_WATCH_MS = 1500;
+const MIN_ENCRYPTED_FRAMES = 3;
+// The only messages that may cross in the clear: pairing and session handshakes, made of public values.
+const HANDSHAKE_TYPES = new Set(['pair', 'challenge', 'confirm', 'paired', 'hello', 'welcome', 'ready']);
+// What a JPEG from canvas.toBlob starts with, and words the app says after the handshake.
+const JPEG_MARKERS = [Buffer.from([0xff, 0xd8, 0xff]), Buffer.from('JFIF')];
+const APP_WORDS = ['camera-start', 'request', 'approve', 'status', 'network'];
 
 // The code the PC shows now, read the same way the person reads it: ./run.sh code (pairing.py).
 function pairingCode() {
@@ -179,4 +187,48 @@ test('over plain HTTP, only the request the camera approves gets the picture', a
 
     await camera.click('#stopBtn');
   });
+});
+
+test('an eavesdropper on plain HTTP records the whole watch session and finds no picture and no secret', async () => {
+  const tap = await startWireTap(HTTP_URL);
+  try {
+    await withBrowser(async (openDevice) => {
+      const camera = await openDevice();
+      await pairAndOpen(camera, STREAM_URL);
+      await startStreaming(camera);
+
+      const laptop = await openDevice();
+      await pairAndOpen(laptop, `${tap.url}/watch`);
+      await laptop.getByRole('button', { name: 'Ask to watch' }).click();
+      await laptop.getByText(REQUEST_CODE).waitFor({ timeout: STATUS_TIMEOUT_MS });
+      const laptopCode = (await laptop.getByText(REQUEST_CODE).textContent()).match(REQUEST_CODE)[1];
+      await camera.getByRole('button', { name: `Approve ${laptopCode}` }).click();
+      await laptop.getByRole('img', { name: 'Live camera' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+      await laptop.waitForTimeout(WIRE_WATCH_MS);
+      const stored = await laptop.evaluate(() => localStorage.getItem('devkit-lan-webcam.device'));
+      const secret = JSON.parse(stored).secret;
+      await camera.click('#stopBtn');
+
+      const messages = tap.messages();
+      const wire = tap.bytes();
+      const frames = messages.filter((m) => m.direction === 'server->client' && m.opcode === OPCODE_BINARY);
+      assert.ok(frames.length >= MIN_ENCRYPTED_FRAMES, `the picture crossed the tap (${frames.length} messages)`);
+      for (const marker of JPEG_MARKERS) {
+        assert.ok(!messages.some((m) => m.payload.includes(marker)), `JPEG marker ${marker.toString('hex')} visible`);
+      }
+      for (const word of APP_WORDS) {
+        const binary = messages.filter((m) => m.opcode === OPCODE_BINARY);
+        assert.ok(!binary.some((m) => m.payload.includes(word)), `"${word}" readable after the handshake`);
+      }
+      assert.ok(!wire.includes(Buffer.from(secret, 'hex')) && !wire.includes(secret), 'the device secret leaked');
+      const textTypes = messages.filter((m) => m.opcode === OPCODE_TEXT).map((m) => JSON.parse(m.payload).type);
+      assert.deepEqual(
+        textTypes.filter((type) => !HANDSHAKE_TYPES.has(type)),
+        [],
+        'only handshakes travel as plain text',
+      );
+    });
+  } finally {
+    await tap.close();
+  }
 });
