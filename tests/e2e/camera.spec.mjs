@@ -143,11 +143,11 @@ test('the home page links both pages and the navigation moves between them', asy
     const page = await openDevice();
     await pairAndOpen(page, BASE_URL);
     await page.getByRole('link', { name: /Watch the camera/ }).click();
-    await page.getByRole('heading', { name: '👀 Watching the LAN Webcam' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+    await page.getByRole('heading', { name: 'Watching the LAN Webcam' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
     assert.equal(new URL(page.url()).pathname, '/watch');
 
-    await page.getByRole('navigation', { name: 'Pages' }).getByRole('link', { name: '📷 Stream' }).click();
-    await page.getByRole('heading', { name: '📷 Camera → PC webcam' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
+    await page.getByRole('navigation', { name: 'Pages' }).getByRole('link', { name: 'Stream' }).click();
+    await page.getByRole('heading', { name: 'Camera → PC webcam' }).waitFor({ timeout: STATUS_TIMEOUT_MS });
     assert.equal(new URL(page.url()).pathname, '/stream');
   });
 });

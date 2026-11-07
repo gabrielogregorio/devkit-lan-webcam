@@ -10,7 +10,7 @@ export interface StatusMessage {
 export function cameraListStatus(t: Translate, cameraCount: number, streaming: boolean): StatusMessage {
   const multipleCameras = cameraCount > 1;
   if (streaming) {
-    return { text: t('{count} camera(s) found - 🟢 streaming', { count: cameraCount }), kind: 'ok' };
+    return { text: t('{count} camera(s) found - streaming', { count: cameraCount }), kind: 'ok' };
   }
 
   return { text: t('{count} camera(s) found', { count: cameraCount }), kind: multipleCameras ? 'ok' : '' };
@@ -18,10 +18,10 @@ export function cameraListStatus(t: Translate, cameraCount: number, streaming: b
 
 export function previewStatus(t: Translate, cameraLabel: string, streaming: boolean): StatusMessage {
   if (streaming) {
-    return { text: t('🟢 Streaming - {camera}', { camera: cameraLabel }), kind: 'ok' };
+    return { text: t('Streaming - {camera}', { camera: cameraLabel }), kind: 'ok' };
   }
 
-  return { text: t('👁️ Previewing - {camera}', { camera: cameraLabel }), kind: '' };
+  return { text: t('Previewing - {camera}', { camera: cameraLabel }), kind: '' };
 }
 
 export function cameraFailureStatus(t: Translate, reason: string, revertedToPrevious: boolean): StatusMessage {

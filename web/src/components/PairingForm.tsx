@@ -1,3 +1,4 @@
+import { CircleCheck, CircleX, KeyRound } from 'lucide-react';
 import { useState, type ReactNode, type SubmitEvent } from 'react';
 import { RetroWindow } from '@/components/RetroWindow';
 import { useSessionStore } from '@/lib/SessionContext';
@@ -38,7 +39,7 @@ export function PairingForm(): ReactNode {
 
   return (
     <section className="page pairing" aria-labelledby="pairing-title">
-      <RetroWindow title={t('🔐 Pair this device')} titleId="pairing-title" tone="teal" className="dialog">
+      <RetroWindow title={t('Pair this device')} icon={KeyRound} titleId="pairing-title" tone="teal" className="dialog">
         <p className="lead">
           {t('Type the 6-digit code shown on the PC: in the LAN Webcam icon on the top bar, or with ./run.sh code.')}
         </p>
@@ -58,6 +59,11 @@ export function PairingForm(): ReactNode {
         </form>
         {state.kind === 'result' && (
           <p role="alert" className={state.outcome.type === 'paired' ? 'ok' : 'err'}>
+            {state.outcome.type === 'paired' ? (
+              <CircleCheck className="alert-icon" aria-hidden="true" />
+            ) : (
+              <CircleX className="alert-icon" aria-hidden="true" />
+            )}
             {outcomeText(state.outcome)}
           </p>
         )}

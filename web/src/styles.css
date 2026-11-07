@@ -284,6 +284,37 @@ h2 {
   padding: 14px;
 }
 
+/* ---------- icons (SVG, they take the text colour) ---------- */
+.icon {
+  flex-shrink: 0;
+  width: 1.2em;
+  height: 1.2em;
+  stroke-width: 2.4;
+  vertical-align: -0.25em;
+}
+
+.window-title,
+.site-nav a,
+.card-title,
+.zoomrow label,
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.window-title,
+.card-title {
+  justify-content: flex-start;
+}
+
+.node-icon .icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+}
+
 /* ---------- controls ---------- */
 .row {
   display: flex;
@@ -513,26 +544,17 @@ input[type='range']::-moz-range-thumb {
   background: #fff;
 }
 
-.dialog [role='alert']::before {
-  display: grid;
+.dialog .alert-icon {
   flex-shrink: 0;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border: var(--border);
-  border-radius: 50%;
-  color: #fff;
+  width: 34px;
+  height: 34px;
+  fill: var(--pink);
+  stroke: var(--ink);
+  stroke-width: 2.25;
 }
 
-.dialog [role='alert'].err::before {
-  content: '✕' / '';
-  background: var(--pink);
-}
-
-.dialog [role='alert'].ok::before {
-  content: '✓' / '';
-  background: var(--teal);
-  color: var(--ink);
+.dialog .ok .alert-icon {
+  fill: var(--teal);
 }
 
 /* ---------- home ---------- */
@@ -665,7 +687,6 @@ input[type='range']::-moz-range-thumb {
   place-items: center;
   width: 36px;
   height: 36px;
-  font-size: 20px;
   border: var(--border);
   background: var(--cream);
 }

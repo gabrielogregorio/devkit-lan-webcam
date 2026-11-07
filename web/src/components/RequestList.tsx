@@ -27,12 +27,13 @@ export function RequestList({ requests, onDecide }: Readonly<RequestListProps>):
     <ul className="requests" aria-label={t('Watch requests')}>
       {requests.map((request) => {
         const label = deviceLabel(request.device);
+        const DeviceIcon = DEVICE_ICONS[label.kind];
         const code = formatRequestCode(request.code);
 
         return (
           <li key={request.id} className={`request state-${request.state}`}>
             <span className="node-icon" aria-hidden="true">
-              {DEVICE_ICONS[label.kind]}
+              <DeviceIcon className="icon" />
             </span>
             <span className="node-text">
               <strong>{code}</strong>

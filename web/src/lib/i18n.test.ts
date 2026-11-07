@@ -23,7 +23,7 @@ describe('i18n catalog', () => {
   it('finds the translated strings of the app', () => {
     expect(usedStrings.size).toBeGreaterThanOrEqual(MINIMUM_EXPECTED_STRINGS);
     expect(usedStrings.has('Start streaming')).toBe(true);
-    expect(usedStrings.has('👀 Watching the LAN Webcam')).toBe(true);
+    expect(usedStrings.has('Watching the LAN Webcam')).toBe(true);
   });
 
   it('has a pt-BR line for every string the app uses', () => {

@@ -103,8 +103,8 @@ describe('StreamPage', () => {
       ]),
     );
 
-    await user.click(screen.getByRole('button', { name: '📷 Back' }));
-    await user.click(screen.getByRole('button', { name: '🤳 Front' }));
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    await user.click(screen.getByRole('button', { name: 'Front' }));
     await user.selectOptions(screen.getByRole('combobox', { name: 'Lens' }), 'tele');
 
     expect(streamer.openCamera).toHaveBeenNthCalledWith(1, { facingMode: { exact: 'environment' } });

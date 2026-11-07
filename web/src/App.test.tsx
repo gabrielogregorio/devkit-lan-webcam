@@ -28,7 +28,7 @@ describe('App', () => {
   it('asks for the pairing code until the device is paired', () => {
     render(<App store={new SessionStore({ createSocket: fakeSocketFactory })} />);
 
-    expect(screen.getByRole('heading', { name: '🔐 Pair this device' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Pair this device' })).toBeVisible();
     expect(screen.getByRole('navigation', { name: 'Pages' })).toBeVisible();
   });
 
@@ -48,7 +48,7 @@ describe('App', () => {
 
     expect(screen.getByRole('complementary', { name: 'Network' })).toBeVisible();
 
-    await user.click(screen.getByRole('link', { name: '👀 Watch' }));
+    await user.click(screen.getByRole('link', { name: 'Watch' }));
 
     expect(screen.getByRole('complementary', { name: 'Network' })).toBeVisible();
   });
@@ -58,15 +58,15 @@ describe('App', () => {
     renderPaired();
     const navigation = screen.getByRole('navigation', { name: 'Pages' });
 
-    await user.click(screen.getByRole('link', { name: '👀 Watch' }));
+    await user.click(screen.getByRole('link', { name: 'Watch' }));
 
     expect(window.location.pathname).toBe('/watch');
-    expect(screen.getByRole('heading', { name: '👀 Watching the LAN Webcam' })).toBeVisible();
-    expect(navigation.querySelector('[aria-current="page"]')).toHaveTextContent('👀 Watch');
+    expect(screen.getByRole('heading', { name: 'Watching the LAN Webcam' })).toBeVisible();
+    expect(navigation.querySelector('[aria-current="page"]')).toHaveTextContent('Watch');
 
-    await user.click(screen.getByRole('link', { name: '📷 Stream' }));
+    await user.click(screen.getByRole('link', { name: 'Stream' }));
 
-    expect(screen.getByRole('heading', { name: '📷 Camera → PC webcam' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Camera → PC webcam' })).toBeVisible();
 
     await user.click(screen.getByRole('link', { name: 'LAN Webcam' }));
 
@@ -78,9 +78,9 @@ describe('App', () => {
     renderPaired();
     const streamer = FakeCameraStreamer.latest();
 
-    await user.click(screen.getByRole('link', { name: '👀 Watch' }));
+    await user.click(screen.getByRole('link', { name: 'Watch' }));
 
     expect(streamer.destroy).not.toHaveBeenCalled();
-    expect(screen.getByRole('heading', { name: '📷 Camera → PC webcam', hidden: true })).not.toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Camera → PC webcam', hidden: true })).not.toBeVisible();
   });
 });

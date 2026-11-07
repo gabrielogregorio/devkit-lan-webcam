@@ -7,14 +7,14 @@ describe('stream page texts', () => {
   it.each([
     [1, false, { text: '1 camera(s) found', kind: '' }],
     [2, false, { text: '2 camera(s) found', kind: 'ok' }],
-    [2, true, { text: '2 camera(s) found - 🟢 streaming', kind: 'ok' }],
+    [2, true, { text: '2 camera(s) found - streaming', kind: 'ok' }],
   ])('%i camera(s), streaming %s', (count, streaming, expected) => {
     expect(cameraListStatus(t, count, streaming)).toEqual(expected);
   });
 
   it('describes the preview and the streaming', () => {
-    expect(previewStatus(t, 'Back camera', false)).toEqual({ text: '👁️ Previewing - Back camera', kind: '' });
-    expect(previewStatus(t, 'Back camera', true)).toEqual({ text: '🟢 Streaming - Back camera', kind: 'ok' });
+    expect(previewStatus(t, 'Back camera', false)).toEqual({ text: 'Previewing - Back camera', kind: '' });
+    expect(previewStatus(t, 'Back camera', true)).toEqual({ text: 'Streaming - Back camera', kind: 'ok' });
   });
 
   it('says whether a failed camera fell back to the previous one', () => {

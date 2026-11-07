@@ -1,3 +1,5 @@
+import { Laptop, Smartphone, Tablet, type LucideIcon } from 'lucide-react';
+
 /*
  * A short name for a User-Agent, for the network panel and the watch requests: what kind of device it is
  * and which browser on which system. Only for people to recognize their devices, never for decisions.
@@ -49,8 +51,8 @@ export function deviceLabel(userAgent: string): DeviceLabel {
   return { kind: kindOf(userAgent), name: parts.length > 0 ? parts.join(' · ') : '?' };
 }
 
-export const DEVICE_ICONS: Readonly<Record<DeviceKind, string>> = {
-  phone: '📱',
-  tablet: '📲',
-  computer: '💻',
+export const DEVICE_ICONS: Readonly<Record<DeviceKind, LucideIcon>> = {
+  phone: Smartphone,
+  tablet: Tablet,
+  computer: Laptop,
 };

@@ -91,7 +91,7 @@ describe('WatchPage', () => {
     now.mockReturnValue(1000);
     act(() => server.pushFrame(Uint8Array.of(2)));
 
-    expect(screen.getByRole('status')).toHaveTextContent('🟢 Live - 2 fps');
+    expect(screen.getByRole('status')).toHaveTextContent('Live - 2 fps');
   });
 
   it('says when no camera streams although approved', () => {
@@ -110,12 +110,12 @@ describe('WatchPage', () => {
     document.exitFullscreen = exitFullscreen;
     renderConnected(<WatchPage />);
 
-    await user.click(screen.getByRole('button', { name: '⛶ Full screen' }));
+    await user.click(screen.getByRole('button', { name: 'Full screen' }));
 
     expect(requestFullscreen).toHaveBeenCalledTimes(1);
 
     Object.defineProperty(document, 'fullscreenElement', { configurable: true, get: () => document.body });
-    await user.click(screen.getByRole('button', { name: '⛶ Full screen' }));
+    await user.click(screen.getByRole('button', { name: 'Full screen' }));
 
     expect(exitFullscreen).toHaveBeenCalledTimes(1);
     Reflect.deleteProperty(document, 'fullscreenElement');

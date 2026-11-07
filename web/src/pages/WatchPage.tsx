@@ -1,3 +1,4 @@
+import { Eye, Maximize } from 'lucide-react';
 import { useRef, type ReactNode } from 'react';
 import { RetroWindow } from '@/components/RetroWindow';
 import { t } from '@/lib/i18n';
@@ -27,7 +28,7 @@ export function WatchPage(): ReactNode {
 
   return (
     <section className="page watch" aria-labelledby="watch-title">
-      <RetroWindow title={t('👀 Watching the LAN Webcam')} titleId="watch-title" className="watch-window">
+      <RetroWindow title={t('Watching the LAN Webcam')} icon={Eye} titleId="watch-title" className="watch-window">
         <div className="watch-stage" ref={stageRef} onDoubleClick={toggleFullscreen}>
           {frameUrl && <img className="watch-frame" src={frameUrl} alt={t('Live camera')} />}
           {messages.placeholder && <p className="watch-placeholder">{messages.placeholder}</p>}
@@ -48,7 +49,8 @@ export function WatchPage(): ReactNode {
           </button>
         )}
         <button type="button" onClick={toggleFullscreen}>
-          {t('⛶ Full screen')}
+          <Maximize className="icon" aria-hidden="true" />
+          {t('Full screen')}
         </button>
       </div>
       {status?.code && (

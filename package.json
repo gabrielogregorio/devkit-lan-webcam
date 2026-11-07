@@ -23,6 +23,7 @@
     "@noble/ciphers": "^2.4.0",
     "@noble/curves": "^2.4.0",
     "@noble/hashes": "^2.4.0",
+    "lucide-react": "^1.68.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

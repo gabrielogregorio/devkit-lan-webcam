@@ -59,8 +59,8 @@ describe('watch texts', () => {
 
   it('shows "?" without a code and the frame rate once measured', () => {
     expect(watchMessages(t, 'pending', null, null).status).toBe('Request sent - code ?');
-    expect(watchMessages(t, 'live', null, null).status).toBe('🟢 Live');
-    expect(watchMessages(t, 'live', null, 24)).toEqual({ placeholder: null, status: '🟢 Live - 24 fps', kind: 'ok' });
+    expect(watchMessages(t, 'live', null, null).status).toBe('Live');
+    expect(watchMessages(t, 'live', null, 24)).toEqual({ placeholder: null, status: 'Live - 24 fps', kind: 'ok' });
   });
 
   it('measures frames per second over the elapsed time', () => {

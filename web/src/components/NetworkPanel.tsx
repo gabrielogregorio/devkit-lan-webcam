@@ -1,3 +1,4 @@
+import { Monitor, Network, Router } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RetroWindow } from '@/components/RetroWindow';
 import { deviceLabel, DEVICE_ICONS } from '@/lib/deviceLabel';
@@ -28,11 +29,12 @@ function roleText(role: PeerRole): string {
 
 function PeerNode({ peer }: Readonly<{ peer: Peer }>): ReactNode {
   const label = deviceLabel(peer.device);
+  const DeviceIcon = DEVICE_ICONS[label.kind];
 
   return (
     <li className={`node role-${peer.role}${peer.you ? ' you' : ''}`}>
       <span className="node-icon" aria-hidden="true">
-        {DEVICE_ICONS[label.kind]}
+        <DeviceIcon className="icon" />
       </span>
       <span className="node-text">
         <strong>{peer.ip}</strong>
@@ -52,11 +54,11 @@ export function NetworkPanel({ network, receivedAt }: Readonly<NetworkPanelProps
 
   return (
     <aside className="network-panel" aria-label={t('Network')}>
-      <RetroWindow title={t('Network')} tone="blue">
+      <RetroWindow title={t('Network')} icon={Network} tone="blue">
         <div className="network-hub">
           <span className="node">
             <span className="node-icon" aria-hidden="true">
-              📶
+              <Router className="icon" />
             </span>
             <span className="node-text">
               <strong>{network.router ?? '?'}</strong>
@@ -65,7 +67,7 @@ export function NetworkPanel({ network, receivedAt }: Readonly<NetworkPanelProps
           </span>
           <span className={`node${youAreTheServer ? ' you' : ''}`}>
             <span className="node-icon" aria-hidden="true">
-              🖥️
+              <Monitor className="icon" />
             </span>
             <span className="node-text">
               <strong>{network.server}</strong>

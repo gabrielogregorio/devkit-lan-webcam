@@ -80,10 +80,10 @@ export function watchMessages(
 
 function liveStatus(t: Translate, framesPerSecond: number | null): string {
   if (framesPerSecond === null) {
-    return t('🟢 Live');
+    return t('Live');
   }
 
-  return t('🟢 Live - {fps} fps', { fps: framesPerSecond });
+  return t('Live - {fps} fps', { fps: framesPerSecond });
 }
 
 export const framesPerSecond = (frameCount: number, elapsedMilliseconds: number): number =>

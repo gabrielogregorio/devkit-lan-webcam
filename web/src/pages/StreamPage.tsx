@@ -1,3 +1,14 @@
+import {
+  Camera,
+  FlipHorizontal2,
+  RotateCcw,
+  RotateCw,
+  SlidersHorizontal,
+  SwitchCamera,
+  Users,
+  Webcam,
+  ZoomIn,
+} from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { QualityControls } from '@/components/QualityControls';
 import { RequestList } from '@/components/RequestList';
@@ -117,7 +128,7 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
 
   return (
     <section className="page stream" aria-labelledby="stream-title" hidden={hidden}>
-      <RetroWindow title={t('📷 Camera → PC webcam')} titleId="stream-title" className="preview-window">
+      <RetroWindow title={t('Camera → PC webcam')} icon={Webcam} titleId="stream-title" className="preview-window">
         <canvas
           id="preview"
           ref={canvasRef}
@@ -133,9 +144,12 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
         </div>
       </RetroWindow>
 
-      <RetroWindow title={t('Controls')} tone="teal" className="panel">
+      <RetroWindow title={t('Controls')} icon={SlidersHorizontal} tone="teal" className="panel">
         <div className="zoomrow">
-          <label htmlFor="zoom">🔍 {t('Zoom')}</label>
+          <label htmlFor="zoom">
+            <ZoomIn className="icon" aria-hidden="true" />
+            {t('Zoom')}
+          </label>
           <input
             type="range"
             id="zoom"
@@ -154,24 +168,29 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
             aria-pressed={view.mirror}
             className={view.mirror ? 'active' : undefined}
             onClick={() => applyView(toggleMirror(view))}>
+            <FlipHorizontal2 className="icon" aria-hidden="true" />
             {t('Mirror')}
           </button>
           <button type="button" id="rotBtn" onClick={() => applyView(cycleRotation(view))}>
+            <RotateCw className="icon" aria-hidden="true" />
             {t('Rotate 90°')}
           </button>
           <button type="button" id="fitBtn" onClick={() => applyView(toggleFit(view))}>
             {fitButtonLabel(t, view.fit)}
           </button>
           <button type="button" id="resetBtn" onClick={() => applyView(resetView())}>
+            <RotateCcw className="icon" aria-hidden="true" />
             {t('Reset')}
           </button>
         </div>
         <div className="row">
           <button type="button" id="backBtn" onClick={() => openCamera(BACK_CAMERA)}>
-            {t('📷 Back')}
+            <Camera className="icon" aria-hidden="true" />
+            {t('Back')}
           </button>
           <button type="button" id="frontBtn" onClick={() => openCamera(FRONT_CAMERA)}>
-            {t('🤳 Front')}
+            <SwitchCamera className="icon" aria-hidden="true" />
+            {t('Front')}
           </button>
         </div>
         <div className="row">
@@ -204,7 +223,7 @@ export function StreamPage({ hidden }: Readonly<StreamPageProps>): ReactNode {
       </RetroWindow>
 
       <section className="who-watches" aria-labelledby="who-watches-title">
-        <RetroWindow title={t('👀 Who may watch')} titleId="who-watches-title" level={2} tone="pink">
+        <RetroWindow title={t('Who may watch')} icon={Users} titleId="who-watches-title" level={2} tone="pink">
           {streaming ? (
             <RequestList requests={session.requests} onDecide={(id, decision) => store.decide(id, decision)} />
           ) : (

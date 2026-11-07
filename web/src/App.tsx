@@ -1,3 +1,4 @@
+import { Camera, Eye } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NavLink } from '@/components/NavLink';
 import { NetworkPanel } from '@/components/NetworkPanel';
@@ -37,10 +38,12 @@ function Shell(): ReactNode {
         </NavLink>
         <nav aria-label={t('Pages')} className="site-nav">
           <NavLink to={ROUTES.stream} current={route}>
-            {t('📷 Stream')}
+            <Camera className="icon" aria-hidden="true" />
+            {t('Stream')}
           </NavLink>
           <NavLink to={ROUTES.watch} current={route}>
-            {t('👀 Watch')}
+            <Eye className="icon" aria-hidden="true" />
+            {t('Watch')}
           </NavLink>
         </nav>
       </header>
