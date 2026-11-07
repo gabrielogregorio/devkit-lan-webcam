@@ -10,7 +10,9 @@ import re
 import socket
 import ssl
 import subprocess
+import threading
 from collections.abc import AsyncIterator
+from typing import IO
 
 from aiohttp import WSMsgType, web
 
@@ -83,7 +85,8 @@ def ffmpeg_cmd(
     height = HEIGHT if height is None else height
     fps = FPS if fps is None else fps
     return [
-        # "error": the empty JPEG appended to each frame (see write_frame) makes the decoder warn on every frame.
+        # "error": the empty JPEG appended to each frame (see write_frame) makes the decoder warn on every frame;
+        # the two error lines it also causes are dropped by forward_ffmpeg_log.
         "ffmpeg", "-hide_banner", "-loglevel", "error",
         "-use_wallclock_as_timestamps", "1",
         # No probing: otherwise ffmpeg holds the first frames to guess the stream.
@@ -95,8 +98,27 @@ def ffmpeg_cmd(
     ]
 
 
+# What the decoder says about the empty JPEG appended to every frame (FRAME_RELEASE_MARKER): two lines per
+# frame, expected and harmless. Only these are dropped; any other ffmpeg line still reaches the log.
+EXPECTED_MARKER_ERRORS = (
+    "No JPEG data found in image",
+    "Error submitting packet to decoder: Invalid data found when processing input",
+)
+
+
+def forward_ffmpeg_log(stderr: IO[bytes]) -> None:
+    """Copies ffmpeg's stderr to the server log, without the two lines the release marker causes."""
+    for raw_line in stderr:
+        line = raw_line.decode(errors="replace").rstrip()
+        if line and not line.endswith(EXPECTED_MARKER_ERRORS):
+            print(f"[ffmpeg] {line}", flush=True)
+
+
 def make_ffmpeg() -> subprocess.Popen[bytes]:
-    return subprocess.Popen(ffmpeg_cmd(), stdin=subprocess.PIPE)
+    ffmpeg_process = subprocess.Popen(ffmpeg_cmd(), stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    if ffmpeg_process.stderr is not None:
+        threading.Thread(target=forward_ffmpeg_log, args=(ffmpeg_process.stderr,), daemon=True).start()
+    return ffmpeg_process
 
 
 # The mjpeg parser only releases a frame when it sees the start (SOI) of the next one, which holds every

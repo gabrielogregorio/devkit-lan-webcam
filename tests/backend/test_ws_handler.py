@@ -1,4 +1,7 @@
 import asyncio
+import io
+import shutil
+import subprocess
 from types import ModuleType
 
 import pytest
@@ -105,3 +108,41 @@ async def test_ffmpeg_missing_tells_the_camera(
 
     assert (await camera.next_json("camera-error"))["type"] == "camera-error"
     await camera.close()
+
+
+def test_ffmpeg_log_drops_only_the_two_lines_the_release_marker_causes(capsys: pytest.CaptureFixture[str]) -> None:
+    from server import forward_ffmpeg_log
+
+    stderr = io.BytesIO(
+        b"[mjpeg @ 0x5f] No JPEG data found in image\n"
+        b"[vist#0:0/mjpeg @ 0x5f] Error submitting packet to decoder: Invalid data found when processing input\n"
+        b"\n"
+        b"[video4linux2,v4l2 @ 0x5f] ioctl(VIDIOC_G_FMT): Invalid argument\n"
+    )
+
+    forward_ffmpeg_log(stderr)
+
+    assert capsys.readouterr().out == "[ffmpeg] [video4linux2,v4l2 @ 0x5f] ioctl(VIDIOC_G_FMT): Invalid argument\n"
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs the real ffmpeg")
+def test_the_real_ffmpeg_says_nothing_else_about_frames_with_the_release_marker(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The filter matches what the installed ffmpeg really prints, with the same input options as server.py."""
+    from server import ffmpeg_cmd, forward_ffmpeg_log
+
+    jpeg_frame = subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "color=red:s=64x48", "-frames:v", "1",
+         "-f", "mjpeg", "pipe:1"],
+        capture_output=True, check=True,
+    ).stdout
+    command = ffmpeg_cmd()
+    command = command[: command.index("-vf")] + ["-f", "null", "-"]
+    decoded = subprocess.run(
+        command, input=(jpeg_frame + FRAME_RELEASE_MARKER) * 3, capture_output=True, check=True
+    )
+
+    assert b"No JPEG data found" in decoded.stderr, "the marker still makes ffmpeg complain"
+    forward_ffmpeg_log(io.BytesIO(decoded.stderr))
+    assert capsys.readouterr().out == ""
