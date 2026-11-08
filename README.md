@@ -29,7 +29,7 @@
 
 <br>
 
-<img src="docs/demo.gif" alt="Animated demo with a phone and a PC side by side, in the Y2K look, with a microscope view of a green alga as the camera: the phone scans the QR code of the PC icon, pairs with the 6-digit code shown on the PC and starts streaming; a video call on the PC shows the LAN Webcam live; two fingers twist the picture on the phone and it turns on the PC too; a browser on the PC asks to watch with the mouse, the phone approves, the picture appears; the language changes to Japanese, Spanish and Portuguese" width="900">
+<img src="docs/demo.gif" alt="Animated demo with a phone and a PC side by side, in the Y2K look, with a microscope view of a green alga as the camera: the phone scans the QR code of the PC icon, pairs with the 6-digit code shown on the PC and starts streaming; a video call on the PC shows the LAN Webcam live; two fingers twist the picture on the phone and it turns on the PC too; a browser on the PC asks to watch with the mouse, the phone approves, the picture appears; the language changes to Japanese once; at the end the mouse opens a meeting app in the same look, picks the LAN Webcam and joins, and the camera shows up in the meeting grid next to the other people" width="900">
 
 <sub>Recorded with the real web app, encrypted pairing and sessions over the real TLS and WebSocket server, with a simulated PC screen, mouse and fingers, and its own pairing state: frames went to the demo, not to <code>/dev/video10</code>. The camera shows a 31-second loop of the author's own microscope recording of a green alga, fed to the browser as a fake camera.</sub>
 
