@@ -1,46 +1,72 @@
-from aiohttp.test_utils import TestClient
+from pathlib import Path
+
+import pytest
+from aiohttp.test_utils import TestClient, TestServer
+
+from conftest import APP_HTML, APP_SCRIPT
 
 NO_CACHE = "no-store, no-cache, must-revalidate"
+ASSET_CACHE = "public, max-age=31536000, immutable"
 
 
-async def test_index_ok_and_html(client: TestClient) -> None:
-    response = await client.get("/")
+@pytest.mark.parametrize("path", ["/", "/stream", "/watch"])
+async def test_every_page_gets_the_app_without_cache(client: TestClient, path: str) -> None:
+    response = await client.get(path)
     assert response.status == 200
     assert "text/html" in response.headers["Content-Type"]
-    body = await response.text()
-    assert '<canvas id="preview">' in body
-    assert "./view.js" in body
-
-
-async def test_index_no_cache_headers(client: TestClient) -> None:
-    response = await client.get("/")
     assert response.headers.get("Cache-Control") == NO_CACHE
     assert response.headers.get("Pragma") == "no-cache"
+    assert await response.text() == APP_HTML
 
 
-async def test_view_js_served_and_no_cache(client: TestClient) -> None:
-    response = await client.get("/view.js")
+async def test_hashed_asset_is_served_with_long_cache(client: TestClient) -> None:
+    response = await client.get("/assets/app-1a2b3c.js")
     assert response.status == 200
-    content_type = response.headers["Content-Type"]
-    assert "javascript" in content_type or "ecmascript" in content_type
-    assert response.headers.get("Cache-Control") == NO_CACHE
-    body = await response.text()
-    assert "computeDrawParams" in body
+    assert "javascript" in response.headers["Content-Type"]
+    assert response.headers.get("Cache-Control") == ASSET_CACHE
+    assert await response.text() == APP_SCRIPT
 
 
-async def test_i18n_js_served_and_no_cache(client: TestClient) -> None:
-    response = await client.get("/i18n.js")
-    assert response.status == 200
-    assert response.headers.get("Cache-Control") == NO_CACHE
-    assert "PT_BR" in await response.text()
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/assets/missing.js",
+        "/assets/..%2Findex.html",
+        "/assets/.hidden",
+        "/assets/%2e%2e%2f%2e%2e%2fserver.py",
+        "/assets/../../server.py",
+    ],
+)
+async def test_assets_never_leave_the_assets_folder(client: TestClient, path: str) -> None:
+    response = await client.get(path)
+    assert response.status == 404, path
 
 
-async def test_private_files_not_served(client: TestClient) -> None:
-    for path in ("/key.pem", "/cert.pem", "/server.py", "/../server.py"):
-        response = await client.get(path)
-        assert response.status == 404, path
+async def test_a_link_inside_assets_that_points_outside_is_not_followed(client: TestClient, dist_dir: Path) -> None:
+    outside = dist_dir.parent / "private.txt"
+    outside.write_text("not for the network")
+    (dist_dir / "assets" / "escape.txt").symlink_to(outside)
 
+    response = await client.get("/assets/escape.txt")
 
-async def test_unknown_route_404(client: TestClient) -> None:
-    response = await client.get("/nope")
     assert response.status == 404
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["/key.pem", "/cert.pem", "/server.py", "/../server.py", "/index.html", "/web/dist/index.html", "/nope"],
+)
+async def test_private_and_unknown_files_are_not_served(client: TestClient, path: str) -> None:
+    response = await client.get(path)
+    assert response.status == 404, path
+
+
+async def test_missing_build_answers_503_with_what_to_run(server_module, tmp_path: Path) -> None:
+    test_client = TestClient(TestServer(server_module.build_app(str(tmp_path / "not-built"))))
+    await test_client.start_server()
+    try:
+        response = await test_client.get("/")
+        assert response.status == 503
+        assert await response.text() == server_module.NOT_BUILT_MESSAGE
+    finally:
+        await test_client.close()

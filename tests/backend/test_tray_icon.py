@@ -129,3 +129,13 @@ def test_second_run_exits_without_gtk(home, capsys):
     assert tray.main([]) == 0
     assert "already on the bar" in capsys.readouterr().out
     lock.close()
+
+
+def test_pairing_label_groups_the_code_and_shows_the_time_left():
+    label = tray.pairing_label("123456", 245)
+
+    assert "123 456" in label
+    assert "(4:05)" in label
+    assert tray.tr("Pairing code: {code} ({time})", "pt-BR", code="123 456", time="0:09") == (
+        "Código de pareamento: 123 456 (0:09)"
+    )

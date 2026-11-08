@@ -39,8 +39,8 @@ def counting_write_frame(ffmpeg_process: subprocess.Popen[bytes], jpeg_frame: by
     return written
 
 
-def build_app_with_counter() -> web.Application:
-    app = _original_build_app()
+def build_app_with_counter(*args: object, **kwargs: object) -> web.Application:
+    app = _original_build_app(*args, **kwargs)
 
     async def frames_handler(request: web.Request) -> web.Response:
         return web.json_response({"frames": frames_received})

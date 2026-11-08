@@ -1,5 +1,5 @@
 name: 'Setup Environment'
-description: 'Creates the Python venv from the locked requirements, sets up Node and, optionally, Playwright for the E2E'
+description: 'Creates the Python venv from the locked requirements, sets up Node from .nvmrc with the locked pnpm packages and, optionally, Playwright for the E2E'
 inputs:
   e2e:
     description: 'Also install Playwright + Chromium and generate a throwaway HTTPS certificate'
@@ -9,14 +9,20 @@ runs:
   steps:
     - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
-        node-version: '22'
+        node-version-file: '.nvmrc'
 
-    - name: Python venv (system python3, locked versions)
+    - name: pnpm packages (versions and hashes from pnpm-lock.yaml)
+      shell: bash
+      run: |
+        corepack enable
+        pnpm install --frozen-lockfile
+
+    - name: Python venv (system python3, locked versions and hashes)
       shell: bash
       run: |
         python3 -m venv .venv
-        .venv/bin/pip install --quiet --upgrade pip
-        .venv/bin/pip install --quiet -r requirements-dev.txt
+        # No pip upgrade: that would fetch whatever pip is newest, without a hash.
+        .venv/bin/pip install --quiet --require-hashes -r requirements-dev.txt
         .venv/bin/python --version
         node --version
 
@@ -24,6 +30,5 @@ runs:
       if: ${{ inputs.e2e == 'true' }}
       shell: bash
       run: |
-        npm install --no-save --no-package-lock --silent playwright@1.62.0
-        npx playwright install --with-deps chromium-headless-shell
+        pnpm exec playwright install --with-deps chromium-headless-shell
         openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 1 -subj "/CN=lan-webcam" 2> /dev/null

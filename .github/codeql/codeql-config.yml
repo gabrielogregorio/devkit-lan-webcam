@@ -1,0 +1,6 @@
+name: lan-webcam codeql config
+
+# tests/ holds fake secrets written to temporary files on purpose and a test client that repeats the
+# server's SPAKE2 steps; their alerts are about the tests, not the app. The app code stays fully scanned.
+paths-ignore:
+  - tests

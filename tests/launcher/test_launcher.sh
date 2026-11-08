@@ -28,7 +28,8 @@ make_sandbox() {
   : > "$sb/server.py"          # placeholder (the fake python ignores it)
   : > "$sb/cert.pem"; : > "$sb/key.pem"   # skips the certificate generation
   : > "$sb/reload-cam.sh"
-  mkdir -p "$sb/.venv/bin" "$sb/bin"
+  mkdir -p "$sb/.venv/bin" "$sb/bin" "$sb/web/dist"
+  : > "$sb/web/dist/index.html"   # an up-to-date build: no pnpm runs
 
   # FAKE python: records the exec and exits 0 (no server)
   cat > "$sb/.venv/bin/python" <<EOF
@@ -133,6 +134,43 @@ sb=$(make_sandbox)
 out=$(run_webcam "$sb" banana); rc=$?
 assert_eq "$rc" "1" "invalid arg: exit 1"
 assert_contains "$out" "usage:" "invalid arg: prints usage"
+rm -rf "$sb"
+
+# Runs with a bare PATH and a sandbox HOME, so no real Node, nvm or pnpm is reachable.
+run_webcam_bare() {  # run_webcam_bare <sandbox> <args...>
+  local sb="$1"; shift
+  ( cd "$sb" && HOME="$sb" NVM_DIR="$sb/.nvm" PATH="$sb/bin:/usr/bin:/bin" bash "$sb/run.sh" "$@" ) 2>&1
+}
+
+add_corepack_stub() {  # add_corepack_stub <sandbox> ; records every call in corepack.log
+  local sb="$1"
+  printf '#!/usr/bin/env bash\necho "corepack $*" >> "%s/corepack.log"\nexit 0\n' "$sb" > "$sb/bin/corepack"
+  chmod +x "$sb/bin/corepack"
+}
+
+# 8) start without a web build -> builds it with pnpm, then starts
+sb=$(make_sandbox); : > "$sb/dev_video10"; mv "$sb/web/dist/index.html" "$sb/web/dist/old-index.html"
+add_corepack_stub "$sb"
+out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 run_webcam_bare "$sb" start)
+corepacklog=$(cat "$sb/corepack.log" 2>/dev/null)
+assert_contains "$corepacklog" "pnpm install --frozen-lockfile" "missing build: installs the locked dependencies"
+assert_contains "$corepacklog" "pnpm run build" "missing build: builds the web app"
+assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "yes" "missing build: starts the server after building"
+rm -rf "$sb"
+
+# 9) start without a web build and without Node -> exit 1, says what to install, does NOT start python
+sb=$(make_sandbox); : > "$sb/dev_video10"; mv "$sb/web/dist/index.html" "$sb/web/dist/old-index.html"
+out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 run_webcam_bare "$sb" start); rc=$?
+assert_eq "$rc" "1" "no build and no Node: exit code 1"
+assert_contains "$out" "nvm install 24" "no build and no Node: says how to install Node"
+assert_eq "$([ -f "$sb/exec.log" ] && echo yes || echo no)" "no" "no build and no Node: does NOT exec python"
+rm -rf "$sb"
+
+# 10) an up-to-date build -> pnpm never runs
+sb=$(make_sandbox); : > "$sb/dev_video10"
+add_corepack_stub "$sb"
+out=$(CAM_DEVICE="$sb/dev_video10" PGREP_RUNNING=0 run_webcam_bare "$sb" start)
+assert_eq "$([ -f "$sb/corepack.log" ] && echo yes || echo no)" "no" "current build: pnpm does not run"
 rm -rf "$sb"
 
 echo ""
