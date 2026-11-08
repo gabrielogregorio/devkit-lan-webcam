@@ -114,10 +114,11 @@ Built and tested on Ubuntu 24.04.
    login, gray while off. Its menu turns the server on and off; turning it on opens a QR code with
    the address, so the device does not need it typed:
 
-   <img src="docs/tray-qr-code.png" alt="Top bar menu of the webcam icon: on air on port 9443, On (checked), the address for the device, Show QR code, Open in browser, View log; next to it the QR code window with the https address" width="640">
+   <img src="docs/tray-qr-code.png" alt="Top bar menu of the webcam icon: on air on port 9443, On (checked), the address for the phone, Show QR code, Open in the browser, the pairing code with the time it still lasts, Change code, Unpair all devices, View log; next to it the QR code window with the https address" width="640">
 
-   The menu follows the system language (the screenshot is in Brazilian Portuguese: Ligado = On,
-   Mostrar QR code = Show QR code). The address is the PC's local IP, so the QR code only works on
+   The picture is a mock-up of the menu, in English (the menu follows the system language). The
+   pairing code there is the one devices type once; **Change code** gives a new one at once and
+   **Unpair all devices** makes every browser pair again. The address is the PC's local IP, so the QR code only works on
    the same network. Without `python3-segno` the QR window shows only the address.
    `./tray_icon.py --remove` takes the icon out of the login.
    The icon runs on the system python3 and needs `sudo apt install python3-gi gir1.2-gtk-3.0
