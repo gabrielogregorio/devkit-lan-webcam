@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Single runner for the LAN Webcam test suite. Same commands the CI runs.
 #
-#   ./run-tests.sh                    -> backend (pytest) + frontend (node) + launcher (bash)
+#   ./run-tests.sh                    -> lint + backend (pytest) + web (pnpm: lint, unit, build) + launcher (bash)
 #   RUN_E2E=1 ./run-tests.sh          -> also the Playwright E2E (downloads a browser; slower)
 #   RUN_DEVICE_TESTS=1 ./run-tests.sh -> also the opt-in test of the real device
 #
@@ -32,8 +32,32 @@ fi
 # ---------- backend (pytest, mocked ffmpeg, ephemeral port) ----------
 run_layer "backend  (pytest)" "$PY" -m pytest tests/backend -q
 
-# ---------- frontend unit (node:test, no DOM) ----------
-run_layer "frontend (node:test view state + i18n)" node --test 'tests/frontend/*.test.mjs'
+# The break tests must notice when the encryption is gone: with it turned off, all three have to fail.
+break_tests_bite() {
+  local output
+  output="$(PYTHONPATH=.:tests/backend "$PY" -m pytest -p plugin_without_encryption -p no:cacheprovider -q \
+    tests/backend/test_wire_tap.py -k "eavesdropper or same_picture or bit_flipped" 2>&1)"
+  echo "$output" | tail -n 1
+  grep -q "3 failed" <<< "$output" && ! grep -q "passed" <<< "$output"
+}
+run_layer "backend  (break tests fail without encryption)" break_tests_bite
+
+# ---------- web app (React + TypeScript, pnpm on Node 24) ----------
+if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ] && ! node --version 2>/dev/null | grep -q '^v24'; then
+  # shellcheck disable=SC1091
+  . "${NVM_DIR:-$HOME/.nvm}/nvm.sh" >/dev/null 2>&1
+  nvm use 24 >/dev/null 2>&1
+fi
+if command -v corepack > /dev/null; then
+  PNPM=(corepack pnpm)
+  run_layer "web      (install, locked)" "${PNPM[@]}" install --frozen-lockfile --silent
+  run_layer "web      (prettier)" "${PNPM[@]}" run --silent format:check
+  run_layer "web      (eslint + tsc)" "${PNPM[@]}" run --silent lint
+  run_layer "web      (vitest, 100% coverage)" "${PNPM[@]}" run --silent unit:coverage
+  run_layer "web      (vite build)" "${PNPM[@]}" run --silent build
+else
+  RESULTS+=("FAIL  web - Node 24 with corepack not found (nvm install 24)"); FAILED=1
+fi
 
 # ---------- launcher (bash + stubs, no sudo, no device) ----------
 run_layer "launcher (run.sh stubs)" bash tests/launcher/test_launcher.sh
@@ -42,14 +66,21 @@ run_layer "launcher (run.sh stubs)" bash tests/launcher/test_launcher.sh
 if [ "${RUN_E2E:-0}" = "1" ]; then
   bar; echo ">> e2e (Playwright, fake camera) - starting serve_mock.py on port $E2E_PORT"; bar
   mkdir -p tmp
-  PORT="$E2E_PORT" "$PY" tests/e2e/serve_mock.py > tmp/e2e-server.log 2>&1 &
+  # Its own pairing state and plain-HTTP port: never the PC's real config nor the real server's 9080.
+  export LAN_WEBCAM_CONFIG_DIR="$PWD/tmp/e2e-config"
+  export LAN_WEBCAM_ENV_FILE="$PWD/tmp/e2e.env"
+  export E2E_HTTP_PORT="${E2E_HTTP_PORT:-19080}"
+  # The LAN address, not localhost: browsers treat http://localhost as secure, a LAN IP is the real plain-HTTP case.
+  E2E_LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  PORT="$E2E_PORT" HTTP_PORT="$E2E_HTTP_PORT" "$PY" tests/e2e/serve_mock.py > tmp/e2e-server.log 2>&1 &
   E2E_SRV=$!
   # waits for the server to answer (self-signed https)
   for _ in $(seq 1 30); do
     if curl -ks --max-time 2 "https://localhost:$E2E_PORT/" -o /dev/null; then break; fi
     sleep 0.2
   done
-  if E2E_BASE_URL="https://localhost:$E2E_PORT" PORT="$E2E_PORT" node --test 'tests/e2e/*.spec.mjs'; then
+  if E2E_BASE_URL="https://localhost:$E2E_PORT" E2E_HTTP_URL="http://${E2E_LAN_IP:-localhost}:$E2E_HTTP_PORT" PORT="$E2E_PORT" \
+    node --test tests/e2e/*.spec.mjs; then
     RESULTS+=("PASS  e2e (Playwright)")
   else
     RESULTS+=("FAIL  e2e (Playwright)"); FAILED=1

@@ -10,3 +10,6 @@ tmp/
 trash/
 dist/
 .omo
+web/dist/
+coverage/
+.env
